@@ -53,6 +53,11 @@ export default function App() {
     return { total, highPriority, avgRecyclable, burning }
   }, [hotspots])
 
+  const hazardHotspots = useMemo(
+    () => hotspots.filter((h) => h.burning && h.status !== 'resolved'),
+    [hotspots]
+  )
+
   const handleSubmitted = useCallback(
     (report, nearestHotspotId) => {
       saveReport(report)
@@ -107,6 +112,27 @@ export default function App() {
           <button className="btn-primary" onClick={() => { setSelectedHotspot(null); setReportOpen(true) }}>📸 Report waste</button>
         </div>
       </header>
+
+      {hazardHotspots.length > 0 && (
+        <div
+          onClick={() => { setTab('map'); setSelectedHotspot(hazardHotspots[0]) }}
+          style={{
+            background: 'var(--sev-critical-soft)',
+            borderBottom: '1px solid rgba(228,72,58,0.4)',
+            color: 'var(--sev-critical)',
+            padding: '8px 16px',
+            fontSize: 12.5,
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            cursor: 'pointer',
+            flexShrink: 0,
+          }}
+        >
+          🔥 {hazardHotspots.length} site{hazardHotspots.length > 1 ? 's' : ''} with active burning/hazard indicators — click to review
+        </div>
+      )}
 
       <div className="view-area">
         {tab === 'map' && (
