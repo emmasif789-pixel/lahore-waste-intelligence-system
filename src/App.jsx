@@ -1,20 +1,37 @@
-import React, { useState, useMemo, useCallback } from 'react'
+import React, { useState, useMemo, useCallback, useEffect } from 'react'
 import MapView from './components/MapView'
 import HotspotDetail from './components/HotspotDetail'
 import AreaPanel from './components/AreaPanel'
 import Dashboard from './components/Dashboard'
 import ReportFlow from './components/ReportFlow'
-import { loadHotspots, saveHotspots, saveReport, applyReportToHotspots, resetDemoData } from './lib/store'
+import Welcome from './components/Welcome'
+import { loadHotspots, saveHotspots, saveReport, applyReportToHotspots, updateHotspotStatus } from './lib/store'
 import { buildAreaIndex, summarizeArea } from './lib/areaEngine'
 import { severityMeta } from './lib/priorityEngine'
 
+const SEEN_KEY = 'lwis_seen_welcome_v1'
+
 export default function App() {
   const [hotspots, setHotspots] = useState(() => loadHotspots())
-  const [tab, setTab] = useState('map') // 'map' | 'dashboard'
+  const [tab, setTab] = useState('map')
   const [selectedHotspot, setSelectedHotspot] = useState(null)
   const [selectedArea, setSelectedArea] = useState('')
   const [reportOpen, setReportOpen] = useState(false)
-  const [justUpdatedId, setJustUpdatedId] = useState(null)
+  const [opsMode, setOpsMode] = useState(false)
+  const [showWelcome, setShowWelcome] = useState(false)
+
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem(SEEN_KEY)) setShowWelcome(true)
+    } catch {
+      setShowWelcome(true)
+    }
+  }, [])
+
+  function dismissWelcome() {
+    setShowWelcome(false)
+    try { localStorage.setItem(SEEN_KEY, '1') } catch {}
+  }
 
   const areaIndex = useMemo(() => buildAreaIndex(hotspots), [hotspots])
   const areaNames = useMemo(() => Object.keys(areaIndex).sort(), [areaIndex])
@@ -43,11 +60,20 @@ export default function App() {
       setHotspots(next)
       saveHotspots(next)
       setReportOpen(false)
-      setJustUpdatedId(hotspotId)
       setTab('map')
       const updated = next.find((h) => h.id === hotspotId)
       if (updated) setSelectedHotspot(updated)
-      setTimeout(() => setJustUpdatedId(null), 4000)
+    },
+    [hotspots]
+  )
+
+  const handleStatusChange = useCallback(
+    (hotspotId, status) => {
+      const next = updateHotspotStatus(hotspots, hotspotId, status)
+      setHotspots(next)
+      saveHotspots(next)
+      const updated = next.find((h) => h.id === hotspotId)
+      if (updated) setSelectedHotspot(updated)
     },
     [hotspots]
   )
@@ -59,7 +85,7 @@ export default function App() {
           <div className="brand-mark">LWI</div>
           <div className="brand-text">
             <div className="brand-title">Lahore Waste Intelligence System</div>
-            <div className="brand-sub">CITY OPERATIONS · PILOT BUILD</div>
+            <div className="brand-sub">{opsMode ? 'CITY OPERATIONS MODE' : 'CITIZEN VIEW · PILOT BUILD'}</div>
           </div>
         </div>
 
@@ -69,6 +95,14 @@ export default function App() {
         </nav>
 
         <div className="topbar-right">
+          <button
+            className="btn-ghost"
+            onClick={() => setOpsMode((v) => !v)}
+            style={opsMode ? { borderColor: 'var(--accent)', color: 'var(--accent)' } : undefined}
+            title="Toggle between citizen view and city operations view"
+          >
+            {opsMode ? '🏛️ Ops mode: ON' : '👤 Citizen view'}
+          </button>
           <span className="demo-badge"><span className="dot" /> Community / demo data</span>
           <button className="btn-primary" onClick={() => { setSelectedHotspot(null); setReportOpen(true) }}>📸 Report waste</button>
         </div>
@@ -111,7 +145,12 @@ export default function App() {
         {tab === 'dashboard' && <Dashboard hotspots={hotspots} onSelectHotspot={setSelectedHotspot} />}
 
         {selectedHotspot && (
-          <HotspotDetail hotspot={selectedHotspot} onClose={() => setSelectedHotspot(null)} />
+          <HotspotDetail
+            hotspot={selectedHotspot}
+            onClose={() => setSelectedHotspot(null)}
+            opsMode={opsMode}
+            onStatusChange={handleStatusChange}
+          />
         )}
       </div>
 
@@ -121,6 +160,13 @@ export default function App() {
           initialHotspot={null}
           onClose={() => setReportOpen(false)}
           onSubmitted={handleSubmitted}
+        />
+      )}
+
+      {showWelcome && (
+        <Welcome
+          onDismiss={dismissWelcome}
+          onStartReport={() => { dismissWelcome(); setSelectedHotspot(null); setReportOpen(true) }}
         />
       )}
     </div>

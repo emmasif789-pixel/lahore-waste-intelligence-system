@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react'
 import { scoreHotspot, severityMeta } from '../lib/priorityEngine'
+import ImpactBanner from './ImpactBanner'
 
 export default function Dashboard({ hotspots, onSelectHotspot }) {
   const scored = useMemo(
@@ -18,6 +19,7 @@ export default function Dashboard({ hotspots, onSelectHotspot }) {
 
   return (
     <div className="dashboard">
+      <ImpactBanner hotspots={hotspots} />
       <div className="dashboard-grid">
         <BigStat icon="🗺️" value={total} caption="Total hotspots tracked" />
         <BigStat icon="🚨" value={highPriority} caption="High-priority sites" accent="var(--sev-high)" />

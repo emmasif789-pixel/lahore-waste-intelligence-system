@@ -33,6 +33,10 @@ export function saveReport(report) {
   localStorage.setItem(REPORTS_KEY, JSON.stringify(reports.slice(0, 200)))
 }
 
+export function updateHotspotStatus(hotspots, hotspotId, status) {
+  return hotspots.map((h) => (h.id === hotspotId ? { ...h, status } : h))
+}
+
 export function resetDemoData() {
   localStorage.setItem(KEY, JSON.stringify(seedHotspots))
   localStorage.removeItem(REPORTS_KEY)

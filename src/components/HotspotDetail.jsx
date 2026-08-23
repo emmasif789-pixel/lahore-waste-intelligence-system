@@ -14,7 +14,13 @@ const TYPE_COLOR = {
   'Mixed/Residual': '#e0b93c',
 }
 
-export default function HotspotDetail({ hotspot, onClose }) {
+const STATUS_OPTIONS = [
+  { value: 'unresolved', label: 'Unresolved' },
+  { value: 'in_progress', label: 'In progress' },
+  { value: 'resolved', label: 'Resolved' },
+]
+
+export default function HotspotDetail({ hotspot, onClose, opsMode, onStatusChange }) {
   if (!hotspot) return null
   const { score, breakdown } = scoreHotspot(hotspot)
   const action = recommendedAction(hotspot, score)
@@ -55,6 +61,33 @@ export default function HotspotDetail({ hotspot, onClose }) {
             <div className="action-label">→ {action.label}</div>
             <div className="action-detail">{action.detail}</div>
           </div>
+
+          {opsMode && (
+            <>
+              <div className="section-label">City operations</div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {STATUS_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => onStatusChange(hotspot.id, opt.value)}
+                    style={{
+                      flex: 1,
+                      padding: '8px 6px',
+                      borderRadius: 8,
+                      fontSize: 11.5,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      border: hotspot.status === opt.value ? '1px solid var(--accent)' : '1px solid var(--panel-border)',
+                      background: hotspot.status === opt.value ? 'var(--accent-soft)' : 'var(--panel-2)',
+                      color: hotspot.status === opt.value ? 'var(--accent)' : 'var(--text-secondary)',
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
 
           <div className="section-label">Site data</div>
           <div className="data-row"><span className="k">Reports filed</span><span className="v">{hotspot.reportsCount}</span></div>
