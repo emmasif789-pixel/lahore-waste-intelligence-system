@@ -993,3 +993,7 @@ table.hs-table tr:hover td {
   .topbar-right{flex-wrap:wrap;justify-content:flex-end}
   .nav-tabs{order:3;width:100%;justify-content:center}
 }
+
+.health-metric-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.big-stat-card{transition:transform .15s,border-color .15s}
+.big-stat-card:hover{transform:translateY(-2px);border-color:var(--accent)}

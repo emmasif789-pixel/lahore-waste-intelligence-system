@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, ZoomControl, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { severityMeta } from '../lib/priorityEngine'
 import { LAHORE_CENTER } from '../lib/geo'
@@ -36,6 +36,14 @@ function ClickCatcher({ onPick }) {
   return null
 }
 
+function FlyToCenter({ center, zoom }) {
+  const map = useMap()
+  React.useEffect(() => {
+    if (center) map.flyTo([center.lat, center.lng], zoom || map.getZoom(), { duration: 0.9 })
+  }, [center?.lat, center?.lng])
+  return null
+}
+
 export default function MapView({
   hotspots = [],
   onSelect,
@@ -46,6 +54,7 @@ export default function MapView({
   pickedPoint,
   height = '100%',
   scrollWheelZoom = true,
+  flyToOnCenterChange = false,
 }) {
   const icons = useMemo(() => {
     const map = {}
@@ -61,8 +70,9 @@ export default function MapView({
       zoom={zoom}
       style={{ height, width: '100%' }}
       scrollWheelZoom={scrollWheelZoom}
-      zoomControl={true}
+      zoomControl={false}
     >
+      <ZoomControl position="bottomright" />
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -71,7 +81,7 @@ export default function MapView({
         <Marker
           key={h.id}
           position={[h.lat, h.lng]}
-          icon={h.severity === 'critical' ? icons[h.severity].pulse : icons[h.severity].normal}
+          icon={h.severity === 'critical' || h.severity === 'high' ? icons[h.severity].pulse : icons[h.severity].normal}
           eventHandlers={{ click: () => onSelect && onSelect(h) }}
         >
           <Popup>
@@ -82,6 +92,7 @@ export default function MapView({
       ))}
       {pickMode && <ClickCatcher onPick={onPick} />}
       {pickedPoint && <Marker position={[pickedPoint.lat, pickedPoint.lng]} icon={pickIcon} />}
+      {flyToOnCenterChange && <FlyToCenter center={center} zoom={zoom} />}
     </MapContainer>
   )
 }

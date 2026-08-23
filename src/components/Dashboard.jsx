@@ -1,7 +1,9 @@
 import React, { useMemo } from 'react'
 import { scoreHotspot, severityMeta } from '../lib/priorityEngine'
 import ImpactBanner from './ImpactBanner'
+import CityHealth from './CityHealth'
 import { exportCleanupReportCSV } from '../lib/exportReport'
+import { useCountUp } from '../lib/useCountUp'
 
 export default function Dashboard({ hotspots, onSelectHotspot }) {
   const scored = useMemo(
@@ -21,22 +23,29 @@ export default function Dashboard({ hotspots, onSelectHotspot }) {
   return (
     <div className="dashboard">
       <ImpactBanner hotspots={hotspots} />
+
       <div className="dashboard-grid">
         <BigStat icon="🗺️" value={total} caption="Total hotspots tracked" />
         <BigStat icon="🚨" value={highPriority} caption="High-priority sites" accent="var(--sev-high)" />
-        <BigStat icon="♻️" value={`${avgRecyclable}%`} caption="Avg. recyclable share" accent="var(--teal)" />
+        <BigStat icon="♻️" value={avgRecyclable} suffix="%" caption="Avg. recyclable share" accent="var(--teal)" />
         <BigStat icon="🔁" value={recurring} caption="Recurring locations (50%+)" />
         <BigStat icon="🔥" value={burning} caption="Burning / hazard hotspots" accent="var(--sev-critical)" />
         <BigStat icon="📝" value={totalReports} caption="Total citizen reports" />
       </div>
 
-      <div className="section-heading" style={{ justifyContent: 'space-between' }}>
-        <span>🎯 Clean these locations first</span>
-        <button className="btn-ghost" style={{ fontSize: 12, padding: '7px 12px' }} onClick={() => exportCleanupReportCSV(hotspots)}>
+      <CityHealth hotspots={hotspots} />
+
+      <div className="section-heading">🎯 Clean these locations first</div>
+      <div className="section-caption" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+        <span>Ranked by the Cleanup Priority Engine — severity, recurrence, proximity to sensitive sites, waste risk, and hazard indicators.</span>
+        <button
+          className="btn-primary"
+          style={{ background: 'linear-gradient(135deg, var(--teal), #2a8a7f)', flexShrink: 0 }}
+          onClick={() => exportCleanupReportCSV(hotspots)}
+        >
           ⬇ Export cleanup report (CSV)
         </button>
       </div>
-      <div className="section-caption">Ranked by the Cleanup Priority Engine — severity, recurrence, proximity to sensitive sites, waste risk, and hazard indicators.</div>
       <div className="priority-list">
         {cleanFirst.map((h, i) => {
           const meta = severityMeta(h.severity)
@@ -97,11 +106,13 @@ export default function Dashboard({ hotspots, onSelectHotspot }) {
   )
 }
 
-function BigStat({ icon, value, caption, accent }) {
+function BigStat({ icon, value, suffix = '', caption, accent }) {
+  const animated = useCountUp(value)
+  const rounded = Number.isInteger(value) ? Math.round(animated) : animated.toFixed(0)
   return (
     <div className="big-stat-card">
       <div className="stat-icon">{icon}</div>
-      <div className="stat-num" style={accent ? { color: accent } : undefined}>{value}</div>
+      <div className="stat-num" style={accent ? { color: accent } : undefined}>{rounded}{suffix}</div>
       <div className="stat-caption">{caption}</div>
     </div>
   )
