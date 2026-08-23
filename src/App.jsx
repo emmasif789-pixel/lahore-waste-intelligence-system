@@ -117,6 +117,7 @@ export default function App() {
 
       {hazardHotspots.length > 0 && (
         <div
+          className="hazard-banner"
           onClick={() => { setTab('map'); setSelectedHotspot(hazardHotspots[0]) }}
           style={{
             background: 'var(--sev-critical-soft)',

@@ -210,7 +210,9 @@ function AnalysisStep({ analyzing, analysis, scoreResult, action, imgUrl }) {
   if (analyzing) {
     return (
       <div className="analyzing-wrap">
-        <div className="spinner" />
+        <div className="ai-pulse-dots">
+          <span></span><span></span><span></span>
+        </div>
         <div>
           <div style={{ fontWeight: 600, fontSize: 14 }}>Running AI waste analysis…</div>
           <div className="analyzing-step">Detecting categories · estimating recoverable share · checking hazard indicators</div>
