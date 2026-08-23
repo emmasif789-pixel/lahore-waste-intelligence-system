@@ -98,3 +98,10 @@ export function severityMeta(severity) {
   }
   return map[severity] || map.moderate
 }
+
+export function riskBandFromScore(score) {
+  if (score >= 7.5) return { label: 'Critical', color: '#E4483A' }
+  if (score >= 5) return { label: 'High', color: '#E38A2E' }
+  if (score >= 2.5) return { label: 'Moderate', color: '#E0B93C' }
+  return { label: 'Low', color: '#4FAE64' }
+}

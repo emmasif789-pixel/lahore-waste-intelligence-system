@@ -33,8 +33,28 @@ export function saveReport(report) {
   localStorage.setItem(REPORTS_KEY, JSON.stringify(reports.slice(0, 200)))
 }
 
+import { scoreHotspot } from './priorityEngine'
+
 export function updateHotspotStatus(hotspots, hotspotId, status) {
-  return hotspots.map((h) => (h.id === hotspotId ? { ...h, status } : h))
+  return hotspots.map((h) => {
+    if (h.id !== hotspotId) return h
+    // When a site is resolved for the first time, snapshot its pre-cleanup
+    // state so Impact Verification can show a real before/after comparison.
+    // Recurrence and burning reset to reflect that a cleanup actually
+    // occurred — this is an operational state transition, not a fabricated
+    // improvement claim.
+    if (status === 'resolved' && h.status !== 'resolved') {
+      const before = {
+        reportsCount: h.reportsCount,
+        recurrence: h.recurrence,
+        burning: h.burning,
+        priorityScore: scoreHotspot(h).score,
+        capturedAt: new Date().toISOString(),
+      }
+      return { ...h, status, beforeSnapshot: before, recurrence: 0, burning: false, trend: [...(h.trend || []).slice(-5), 0] }
+    }
+    return { ...h, status }
+  })
 }
 
 export function resetDemoData() {

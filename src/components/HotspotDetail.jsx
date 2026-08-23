@@ -1,6 +1,6 @@
 import React from 'react'
 import Gauge from './Gauge'
-import { scoreHotspot, recommendedAction, severityMeta } from '../lib/priorityEngine'
+import { scoreHotspot, recommendedAction, severityMeta, riskBandFromScore } from '../lib/priorityEngine'
 
 const TYPE_COLOR = {
   Organic: '#4fae64',
@@ -89,6 +89,10 @@ export default function HotspotDetail({ hotspot, onClose, opsMode, onStatusChang
             </>
           )}
 
+          {hotspot.status === 'resolved' && hotspot.beforeSnapshot && (
+            <ImpactVerification hotspot={hotspot} currentScore={score} />
+          )}
+
           <div className="section-label">Site data</div>
           <div className="data-row"><span className="k">Reports filed</span><span className="v">{hotspot.reportsCount}</span></div>
           <div className="data-row"><span className="k">Recurrence rate</span><span className="v">{hotspot.recurrence}%</span></div>
@@ -130,6 +134,62 @@ export default function HotspotDetail({ hotspot, onClose, opsMode, onStatusChang
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+function ImpactVerification({ hotspot, currentScore }) {
+  const before = hotspot.beforeSnapshot
+  const beforeBand = riskBandFromScore(before.priorityScore)
+  const afterBand = riskBandFromScore(currentScore)
+
+  return (
+    <div style={{ marginTop: 4 }}>
+      <div className="section-label">📸 Impact verification</div>
+      <div
+        style={{
+          background: 'var(--sev-low-soft)',
+          border: '1px solid rgba(79,174,100,0.35)',
+          borderRadius: 'var(--radius-md)',
+          padding: 14,
+        }}
+      >
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: 10, alignItems: 'center' }}>
+          <ImpactColumn
+            label="BEFORE cleanup"
+            recurrence={before.recurrence}
+            risk={beforeBand}
+            burning={before.burning}
+          />
+          <div style={{ fontSize: 18, color: 'var(--text-muted)' }}>→</div>
+          <ImpactColumn
+            label="AFTER cleanup"
+            recurrence={hotspot.recurrence}
+            risk={afterBand}
+            burning={hotspot.burning}
+            highlight
+          />
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 10, lineHeight: 1.5 }}>
+          Recurrence and hazard status reset when this site was marked resolved on {before.capturedAt?.slice(0, 10)}. Future reports at this location will show whether the improvement holds.
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ImpactColumn({ label, recurrence, risk, burning, highlight }) {
+  return (
+    <div style={{ textAlign: 'center' }}>
+      <div style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+        {label}
+      </div>
+      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, color: highlight ? 'var(--sev-low)' : 'var(--text-primary)' }}>
+        {recurrence}%
+      </div>
+      <div style={{ fontSize: 10.5, color: 'var(--text-muted)', marginBottom: 4 }}>recurrence</div>
+      <div style={{ fontSize: 11, fontWeight: 600, color: risk.color }}>{risk.label} risk</div>
+      {burning && <div style={{ fontSize: 10, color: 'var(--sev-critical)', marginTop: 2 }}>🔥 burning</div>}
     </div>
   )
 }

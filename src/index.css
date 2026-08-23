@@ -997,3 +997,30 @@ table.hs-table tr:hover td {
 .health-metric-card:hover{border-color:var(--accent);transform:translateY(-2px)}
 .big-stat-card{transition:transform .15s,border-color .15s}
 .big-stat-card:hover{transform:translateY(-2px);border-color:var(--accent)}
+
+/* City Intelligence panel */
+.intel-panel{width:400px}
+.intel-sparkle{display:inline-block;animation:sparklePulse 2.2s ease-in-out infinite}
+@keyframes sparklePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.15)}}
+.intel-section{margin-bottom:22px}
+.intel-section:last-child{margin-bottom:0}
+.intel-row{display:flex;align-items:center;gap:8px;background:var(--panel-2);border:1px solid var(--panel-border-soft);border-radius:8px;padding:8px 10px;cursor:pointer;transition:border-color .15s}
+.intel-row:hover{border-color:var(--accent)}
+.intel-focus-name{font-weight:600;font-size:13px;margin-bottom:6px}
+
+.intel-fab{
+  position:absolute;bottom:100px;right:14px;z-index:400;
+  background:linear-gradient(135deg, var(--panel-2), var(--panel));
+  border:1px solid var(--accent);color:var(--accent);
+  padding:10px 16px;border-radius:24px;font-weight:600;font-size:13px;
+  cursor:pointer;display:flex;align-items:center;gap:7px;
+  box-shadow:0 4px 20px rgba(207,154,62,0.25);
+  animation:fabFloat 3s ease-in-out infinite;
+}
+.intel-fab:hover{filter:brightness(1.15)}
+@keyframes fabFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+
+@media (max-width:720px){
+  .intel-fab{right:14px;bottom:150px}
+  .intel-panel{width:100vw}
+}

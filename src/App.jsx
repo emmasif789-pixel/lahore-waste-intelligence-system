@@ -5,6 +5,7 @@ import AreaPanel from './components/AreaPanel'
 import Dashboard from './components/Dashboard'
 import ReportFlow from './components/ReportFlow'
 import Welcome from './components/Welcome'
+import CityIntelligence from './components/CityIntelligence'
 import { loadHotspots, saveHotspots, saveReport, applyReportToHotspots, updateHotspotStatus } from './lib/store'
 import { buildAreaIndex, summarizeArea } from './lib/areaEngine'
 import { severityMeta } from './lib/priorityEngine'
@@ -19,6 +20,7 @@ export default function App() {
   const [reportOpen, setReportOpen] = useState(false)
   const [opsMode, setOpsMode] = useState(false)
   const [showWelcome, setShowWelcome] = useState(false)
+  const [intelOpen, setIntelOpen] = useState(false)
 
   useEffect(() => {
     try {
@@ -165,6 +167,10 @@ export default function App() {
                 )
               })}
             </div>
+
+            <button className="intel-fab" onClick={() => setIntelOpen(true)}>
+              <span className="intel-sparkle">✦</span> City Intelligence
+            </button>
           </div>
         )}
 
@@ -186,6 +192,15 @@ export default function App() {
           initialHotspot={null}
           onClose={() => setReportOpen(false)}
           onSubmitted={handleSubmitted}
+        />
+      )}
+
+      {intelOpen && (
+        <CityIntelligence
+          hotspots={hotspots}
+          selectedHotspot={selectedHotspot}
+          onClose={() => setIntelOpen(false)}
+          onSelectHotspot={(h) => { setIntelOpen(false); setTab('map'); setSelectedHotspot(h) }}
         />
       )}
 
