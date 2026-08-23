@@ -33,16 +33,16 @@ export default function Gauge({ score = 0, size = 84 }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
-      <svg width={size} height={size} viewBox="0 0 80 80">
+      <svg width={size} height={size} viewBox="0 0 80 80" className="gauge-svg">
         <path d={arcPath(startAngle, endAngle)} stroke="var(--panel-border)" strokeWidth="6" fill="none" strokeLinecap="round" />
-        <path d={arcPath(startAngle, angle)} stroke={color} strokeWidth="6" fill="none" strokeLinecap="round" />
+        <path d={arcPath(startAngle, angle)} stroke={color} strokeWidth="6" fill="none" strokeLinecap="round" className="gauge-arc" />
         {ticks.map((t, i) => {
           const p1 = polar(t)
           const rad = ((t - 90) * Math.PI) / 180
           const p2 = { x: cx + (r - 8) * Math.cos(rad), y: cy + (r - 8) * Math.sin(rad) }
           return <line key={i} x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y} stroke="var(--panel-border)" strokeWidth="1.5" />
         })}
-        <line x1={cx} y1={cy} x2={needle.x} y2={needle.y} stroke={color} strokeWidth="2" strokeLinecap="round" />
+        <line x1={cx} y1={cy} x2={needle.x} y2={needle.y} stroke={color} strokeWidth="2" strokeLinecap="round" className="gauge-needle" />
         <circle cx={cx} cy={cy} r="3" fill={color} />
         <text x="40" y="44" textAnchor="middle" fontFamily="var(--font-display)" fontSize="17" fontWeight="700" fill="var(--text-primary)">
           {score.toFixed(1)}

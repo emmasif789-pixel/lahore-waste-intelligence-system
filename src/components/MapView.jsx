@@ -7,13 +7,17 @@ import { LAHORE_CENTER } from '../lib/geo'
 function makeIcon(severity, pulse) {
   const meta = severityMeta(severity)
   const html = `
-    <div style="position:relative;width:26px;height:26px;">
-      ${pulse ? `<div class="pulse-ring" style="width:26px;height:26px;background:${meta.color};left:0;top:0;"></div>` : ''}
-      <div class="hotspot-pin" style="width:26px;height:26px;background:${meta.color};position:relative;">
-        <div class="hotspot-pin-inner">${meta.emoji.replace(/./, '')}</div>
-      </div>
+    <div style="position:relative;width:22px;height:22px;">
+      ${pulse ? `<div class="pulse-ring" style="width:22px;height:22px;background:${meta.color};left:0;top:0;"></div>` : ''}
+      <div style="
+        width:22px;height:22px;border-radius:50%;
+        background:${meta.color};
+        border:3px solid #0a0e13;
+        box-shadow:0 2px 8px rgba(0,0,0,0.5), 0 0 0 1px ${meta.color}55;
+        position:relative;
+      "></div>
     </div>`
-  return L.divIcon({ html, className: '', iconSize: [26, 26], iconAnchor: [13, 26], popupAnchor: [0, -24] })
+  return L.divIcon({ html, className: '', iconSize: [22, 22], iconAnchor: [11, 11], popupAnchor: [0, -14] })
 }
 
 const pickIcon = L.divIcon({
