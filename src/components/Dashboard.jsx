@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react'
 import { scoreHotspot, severityMeta } from '../lib/priorityEngine'
 import ImpactBanner from './ImpactBanner'
+import { exportCleanupReportCSV } from '../lib/exportReport'
 
 export default function Dashboard({ hotspots, onSelectHotspot }) {
   const scored = useMemo(
@@ -29,7 +30,12 @@ export default function Dashboard({ hotspots, onSelectHotspot }) {
         <BigStat icon="📝" value={totalReports} caption="Total citizen reports" />
       </div>
 
-      <div className="section-heading">🎯 Clean these locations first</div>
+      <div className="section-heading" style={{ justifyContent: 'space-between' }}>
+        <span>🎯 Clean these locations first</span>
+        <button className="btn-ghost" style={{ fontSize: 12, padding: '7px 12px' }} onClick={() => exportCleanupReportCSV(hotspots)}>
+          ⬇ Export cleanup report (CSV)
+        </button>
+      </div>
       <div className="section-caption">Ranked by the Cleanup Priority Engine — severity, recurrence, proximity to sensitive sites, waste risk, and hazard indicators.</div>
       <div className="priority-list">
         {cleanFirst.map((h, i) => {
