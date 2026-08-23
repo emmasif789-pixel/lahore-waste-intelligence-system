@@ -142,6 +142,11 @@ export default function App() {
           <div className="map-wrap">
             <MapView hotspots={visibleHotspots} onSelect={setSelectedHotspot} />
 
+            <div className="map-context-bar">
+              <span className="map-context-title">🗺️ Lahore Waste Hotspot Map</span>
+              <span className="map-context-sub">Pins are colored by severity — tap any pin for full site intelligence</span>
+            </div>
+
             <div className="stat-strip">
               <StatChip label="Total hotspots" value={cityStats.total} />
               <StatChip label="High priority" value={cityStats.highPriority} color="var(--sev-high)" />
@@ -158,15 +163,18 @@ export default function App() {
             />
 
             <div className="legend-float">
-              {['critical', 'high', 'moderate', 'low'].map((s) => {
-                const m = severityMeta(s)
-                return (
-                  <div className="legend-item" key={s}>
-                    <span className="legend-dot" style={{ background: m.color }} />
-                    {m.label}
-                  </div>
-                )
-              })}
+              <div className="legend-heading">Severity legend</div>
+              <div className="legend-items-row">
+                {['critical', 'high', 'moderate', 'low'].map((s) => {
+                  const m = severityMeta(s)
+                  return (
+                    <div className="legend-item" key={s}>
+                      <span className="legend-dot" style={{ background: m.color }} />
+                      {m.label}
+                    </div>
+                  )
+                })}
+              </div>
             </div>
 
             <button className="intel-fab" onClick={() => setIntelOpen(true)}>
