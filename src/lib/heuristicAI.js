@@ -4,7 +4,7 @@
 // trained vision model either. Every result produced by this path is labeled
 // "Demo AI Model" in the UI so it's never confused with the real vision
 // endpoint (src/lib/analyzeWaste.js calls /api/analyze first, which uses a
-// real vision-capable model when ANTHROPIC_API_KEY is configured server-side).
+// real vision-capable model when GROQ_API_KEY is configured server-side).
 
 function bucketColor(r, g, b) {
   const max = Math.max(r, g, b)

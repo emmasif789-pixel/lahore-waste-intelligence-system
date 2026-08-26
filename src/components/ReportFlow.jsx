@@ -233,7 +233,7 @@ function AnalysisStep({ analyzing, analysis, scoreResult, action, imgUrl }) {
       <div className="confidence-note">
         {analysis.source === 'model'
           ? `Live vision-model estimate · confidence ${Math.round((analysis.confidence || 0) * 100)}%. Figures are AI estimates from a single photo, not a lab measurement.`
-          : `No live vision API key configured for this deployment, so this result comes from an in-browser color/composition heuristic run on your actual photo · confidence ${Math.round((analysis.confidence || 0) * 100)}%. Connect ANTHROPIC_API_KEY to enable the live model.`}
+          : `No live vision API key configured for this deployment, so this result comes from an in-browser color/composition heuristic run on your actual photo · confidence ${Math.round((analysis.confidence || 0) * 100)}%. Connect GROQ_API_KEY to enable the live model.`}
       </div>
 
       <div className="section-label">Waste composition (AI estimate)</div>

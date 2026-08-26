@@ -1,7 +1,7 @@
 import { heuristicAnalyze } from './heuristicAI'
 
 // Tries the real server-side vision model first (/api/analyze, which uses
-// Claude's vision API when ANTHROPIC_API_KEY is set in the Vercel project).
+// Groq's vision-capable Llama model when GROQ_API_KEY is set in the Vercel project).
 // If that's not configured or the request fails, falls back to the in-browser
 // heuristic so the demo is never dead in the water without a key.
 export async function analyzeWastePhoto(file, imageEl, coords) {

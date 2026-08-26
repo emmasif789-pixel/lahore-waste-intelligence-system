@@ -1,6 +1,6 @@
-// Vercel serverless function. Calls Anthropic's vision-capable API to
+// Vercel serverless function. Calls Groq's vision-capable Llama model to
 // classify an uploaded waste photo into structured JSON. Requires
-// ANTHROPIC_API_KEY to be set as an environment variable on the Vercel
+// GROQ_API_KEY to be set as an environment variable on the Vercel
 // project. If it's not set, returns 501 so the client falls back to the
 // in-browser heuristic model — the app works either way, but this path is
 // the "real" one for the demo.
