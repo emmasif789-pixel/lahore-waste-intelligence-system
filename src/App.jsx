@@ -6,14 +6,15 @@ import Dashboard from './components/Dashboard'
 import ReportFlow from './components/ReportFlow'
 import Welcome from './components/Welcome'
 import CityIntelligence from './components/CityIntelligence'
-import { loadHotspots, saveHotspots, saveReport, applyReportToHotspots, updateHotspotStatus } from './lib/store'
+import { loadHotspots, upsertHotspot, saveReport, applyReportToHotspots, updateHotspotStatus } from './lib/store'
 import { buildAreaIndex, summarizeArea } from './lib/areaEngine'
 import { severityMeta } from './lib/priorityEngine'
 
 const SEEN_KEY = 'lwis_seen_welcome_v1'
 
 export default function App() {
-  const [hotspots, setHotspots] = useState(() => loadHotspots())
+  const [hotspots, setHotspots] = useState([])
+  const [dataLoading, setDataLoading] = useState(true)
   const [tab, setTab] = useState('map')
   const [selectedHotspot, setSelectedHotspot] = useState(null)
   const [selectedArea, setSelectedArea] = useState('')
@@ -21,6 +22,17 @@ export default function App() {
   const [opsMode, setOpsMode] = useState(false)
   const [showWelcome, setShowWelcome] = useState(false)
   const [intelOpen, setIntelOpen] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    loadHotspots().then((data) => {
+      if (!cancelled) {
+        setHotspots(data)
+        setDataLoading(false)
+      }
+    })
+    return () => { cancelled = true }
+  }, [])
 
   useEffect(() => {
     try {
@@ -62,14 +74,16 @@ export default function App() {
 
   const handleSubmitted = useCallback(
     (report, nearestHotspotId) => {
-      saveReport(report)
-      const { hotspots: next, hotspotId } = applyReportToHotspots(hotspots, report, nearestHotspotId)
+      const { hotspots: next, hotspotId, created } = applyReportToHotspots(hotspots, report, nearestHotspotId)
       setHotspots(next)
-      saveHotspots(next)
       setReportOpen(false)
       setTab('map')
       const updated = next.find((h) => h.id === hotspotId)
       if (updated) setSelectedHotspot(updated)
+
+      // Persist to Supabase: the changed/created hotspot, plus the report itself.
+      if (updated) upsertHotspot(updated)
+      saveReport({ ...report, hotspotId, priorityScore: null })
     },
     [hotspots]
   )
@@ -78,12 +92,29 @@ export default function App() {
     (hotspotId, status) => {
       const next = updateHotspotStatus(hotspots, hotspotId, status)
       setHotspots(next)
-      saveHotspots(next)
       const updated = next.find((h) => h.id === hotspotId)
-      if (updated) setSelectedHotspot(updated)
+      if (updated) {
+        setSelectedHotspot(updated)
+        upsertHotspot(updated)
+      }
     },
     [hotspots]
   )
+
+  if (dataLoading) {
+    return (
+      <div className="app-shell" style={{ alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div className="ai-pulse-dots" style={{ justifyContent: 'center', marginBottom: 14 }}>
+            <span></span><span></span><span></span>
+          </div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-muted)' }}>
+            Loading city intelligence…
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="app-shell">
@@ -110,7 +141,7 @@ export default function App() {
           >
             {opsMode ? '🏛️ Ops mode: ON' : '👤 Citizen view'}
           </button>
-          <span className="demo-badge"><span className="dot" /> Community / demo data</span>
+          <span className="demo-badge"><span className="dot" /> Live shared database</span>
           <button className="btn-primary" onClick={() => { setSelectedHotspot(null); setReportOpen(true) }}>📸 Report waste</button>
         </div>
       </header>

@@ -1,39 +1,85 @@
 import seedHotspots from '../data/hotspots.json'
-
-const KEY = 'lwis_hotspots_v1'
-const REPORTS_KEY = 'lwis_reports_v1'
-
-export function loadHotspots() {
-  try {
-    const raw = localStorage.getItem(KEY)
-    if (raw) return JSON.parse(raw)
-  } catch (e) {
-    // ignore, fall through to seed
-  }
-  localStorage.setItem(KEY, JSON.stringify(seedHotspots))
-  return seedHotspots
-}
-
-export function saveHotspots(hotspots) {
-  localStorage.setItem(KEY, JSON.stringify(hotspots))
-}
-
-export function loadReports() {
-  try {
-    const raw = localStorage.getItem(REPORTS_KEY)
-    return raw ? JSON.parse(raw) : []
-  } catch (e) {
-    return []
-  }
-}
-
-export function saveReport(report) {
-  const reports = loadReports()
-  reports.unshift(report)
-  localStorage.setItem(REPORTS_KEY, JSON.stringify(reports.slice(0, 200)))
-}
-
 import { scoreHotspot } from './priorityEngine'
+import { supabase } from './supabaseClient'
+
+const REPORTS_LOCAL_KEY = 'lwis_reports_cache_v1' // small local cache of recent reports for the report-history UI, not the source of truth
+
+// --- field mapping between app shape (camelCase) and DB shape (snake_case) ---
+
+function rowToHotspot(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    area: row.area,
+    lat: row.lat,
+    lng: row.lng,
+    severity: row.severity,
+    wasteTypes: row.waste_types || [],
+    reportsCount: row.reports_count,
+    recurrence: row.recurrence,
+    recyclablePct: row.recyclable_pct,
+    burning: row.burning,
+    nearby: row.nearby || [],
+    trend: row.trend || [],
+    status: row.status,
+    lastReported: row.last_reported,
+    beforeSnapshot: row.before_snapshot || null,
+  }
+}
+
+function hotspotToRow(h) {
+  return {
+    id: h.id,
+    name: h.name,
+    area: h.area,
+    lat: h.lat,
+    lng: h.lng,
+    severity: h.severity,
+    waste_types: h.wasteTypes || [],
+    reports_count: h.reportsCount || 0,
+    recurrence: h.recurrence || 0,
+    recyclable_pct: h.recyclablePct || 0,
+    burning: !!h.burning,
+    nearby: h.nearby || [],
+    trend: h.trend || [],
+    status: h.status || 'unresolved',
+    last_reported: h.lastReported || null,
+    before_snapshot: h.beforeSnapshot || null,
+  }
+}
+
+// --- hotspots ---
+
+export async function loadHotspots() {
+  try {
+    const { data, error } = await supabase.from('hotspots').select('*').order('id')
+    if (error) throw error
+
+    if (!data || data.length === 0) {
+      // First run against a fresh database — seed it once from the demo dataset.
+      const rows = seedHotspots.map(hotspotToRow)
+      const { error: insertError } = await supabase.from('hotspots').insert(rows)
+      if (insertError) throw insertError
+      return seedHotspots
+    }
+
+    return data.map(rowToHotspot)
+  } catch (err) {
+    console.error('Supabase load failed, falling back to local demo data:', err)
+    return seedHotspots
+  }
+}
+
+export async function upsertHotspot(hotspot) {
+  try {
+    const { error } = await supabase.from('hotspots').upsert(hotspotToRow(hotspot))
+    if (error) throw error
+    return true
+  } catch (err) {
+    console.error('Supabase upsert failed:', err)
+    return false
+  }
+}
 
 export function updateHotspotStatus(hotspots, hotspotId, status) {
   return hotspots.map((h) => {
@@ -57,11 +103,6 @@ export function updateHotspotStatus(hotspots, hotspotId, status) {
   })
 }
 
-export function resetDemoData() {
-  localStorage.setItem(KEY, JSON.stringify(seedHotspots))
-  localStorage.removeItem(REPORTS_KEY)
-}
-
 // Merge a new citizen report into the hotspot dataset: either bump an
 // existing nearby hotspot's report count/recurrence/trend, or create a new one.
 export function applyReportToHotspots(hotspots, report, nearestHotspotId) {
@@ -80,7 +121,7 @@ export function applyReportToHotspots(hotspots, report, nearestHotspotId) {
     }
   }
   const newHotspot = {
-    id: `LHR-${String(1000 + hotspots.length)}`,
+    id: `LHR-${Date.now()}`,
     name: report.locationLabel || 'New citizen report',
     area: report.area || 'Unassigned',
     lat: report.lat,
@@ -98,4 +139,42 @@ export function applyReportToHotspots(hotspots, report, nearestHotspotId) {
   }
   next.push(newHotspot)
   return { hotspots: next, hotspotId: newHotspot.id, created: true }
+}
+
+// --- reports ---
+
+export async function saveReport(report) {
+  try {
+    const { error } = await supabase.from('reports').insert({
+      id: report.id,
+      hotspot_id: report.hotspotId || null,
+      lat: report.lat,
+      lng: report.lng,
+      location_label: report.locationLabel,
+      area: report.area,
+      analysis: report.analysis,
+      priority_score: report.priorityScore ?? null,
+      created_at: report.timestamp,
+    })
+    if (error) throw error
+  } catch (err) {
+    console.error('Supabase report insert failed:', err)
+  }
+  // small local cache as a fallback / for instant UI if needed later
+  try {
+    const raw = localStorage.getItem(REPORTS_LOCAL_KEY)
+    const list = raw ? JSON.parse(raw) : []
+    list.unshift(report)
+    localStorage.setItem(REPORTS_LOCAL_KEY, JSON.stringify(list.slice(0, 50)))
+  } catch {}
+}
+
+export async function resetDemoData() {
+  try {
+    await supabase.from('hotspots').delete().neq('id', '')
+    await supabase.from('hotspots').insert(seedHotspots.map(hotspotToRow))
+  } catch (err) {
+    console.error('Supabase reset failed:', err)
+  }
+  try { localStorage.removeItem(REPORTS_LOCAL_KEY) } catch {}
 }
