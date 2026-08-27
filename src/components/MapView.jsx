@@ -45,6 +45,21 @@ function FlyToCenter({ center, zoom }) {
   return null
 }
 
+function PanControls() {
+  const map = useMap()
+  const pan = (dx, dy) => map.panBy([dx, dy], { animate: true, duration: 0.35 })
+  return (
+    <div className="map-pan-pad">
+      <button className="pan-btn pan-up" onClick={() => pan(0, -110)} aria-label="Pan up">▲</button>
+      <div className="pan-mid-row">
+        <button className="pan-btn pan-left" onClick={() => pan(-110, 0)} aria-label="Pan left">◀</button>
+        <button className="pan-btn pan-right" onClick={() => pan(110, 0)} aria-label="Pan right">▶</button>
+      </div>
+      <button className="pan-btn pan-down" onClick={() => pan(0, 110)} aria-label="Pan down">▼</button>
+    </div>
+  )
+}
+
 export default function MapView({
   hotspots = [],
   onSelect,
@@ -74,6 +89,7 @@ export default function MapView({
       zoomControl={false}
     >
       <ZoomControl position="bottomleft" />
+      <PanControls />
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

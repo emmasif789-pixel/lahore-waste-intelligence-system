@@ -1174,3 +1174,54 @@ table.hs-table tr:hover td {
 }
 
 @keyframes choiceEnter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* Restyle Leaflet's default zoom control to match the dark theme */
+.leaflet-control-zoom {
+  border: 1px solid var(--panel-border) !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+  box-shadow: var(--shadow-panel) !important;
+}
+.leaflet-control-zoom a {
+  background: var(--panel-2) !important;
+  color: var(--text-primary) !important;
+  border-bottom: 1px solid var(--panel-border-soft) !important;
+  width: 28px !important;
+  height: 28px !important;
+  line-height: 28px !important;
+}
+.leaflet-control-zoom-out { border-bottom: none !important; }
+.leaflet-control-zoom a:hover {
+  background: var(--accent-soft) !important;
+  color: var(--accent) !important;
+}
+
+/* Directional pan pad — sits just above the zoom control */
+.map-pan-pad {
+  position: absolute;
+  bottom: 96px;
+  left: 10px;
+  z-index: 401;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.pan-mid-row { display: flex; gap: 2px; }
+.pan-btn {
+  width: 28px;
+  height: 28px;
+  background: var(--panel-2);
+  border: 1px solid var(--panel-border);
+  color: var(--text-secondary);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-panel);
+  transition: background 0.15s, color 0.15s, transform 0.1s;
+}
+.pan-btn:hover { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+.pan-btn:active { transform: scale(0.92); }
