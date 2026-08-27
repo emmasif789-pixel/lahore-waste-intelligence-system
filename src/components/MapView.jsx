@@ -39,7 +39,8 @@ function ClickCatcher({ onPick }) {
 function FlyToCenter({ center, zoom }) {
   const map = useMap()
   React.useEffect(() => {
-    if (center) map.flyTo([center.lat, center.lng], zoom || map.getZoom(), { duration: 0.9 })
+    const target = center || LAHORE_CENTER
+    map.flyTo([target.lat, target.lng], zoom || map.getZoom(), { duration: 0.9 })
   }, [center?.lat, center?.lng])
   return null
 }
@@ -72,7 +73,7 @@ export default function MapView({
       scrollWheelZoom={scrollWheelZoom}
       zoomControl={false}
     >
-      <ZoomControl position="bottomright" />
+      <ZoomControl position="bottomleft" />
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

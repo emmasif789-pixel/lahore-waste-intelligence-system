@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import { scoreHotspot, recommendedAction, severityMeta } from '../lib/priorityEngine'
 
 // Every insight here is computed directly from the live hotspot dataset —
@@ -46,6 +46,10 @@ export default function CityIntelligence({ hotspots, selectedHotspot, onClose, o
         </div>
 
         <div className="slide-panel-body">
+          <IntelSection title="Ask a question" icon="💬">
+            <RecommendedQA hotspots={hotspots} scored={scored} areas={[...new Set(hotspots.map((h) => h.area))]} />
+          </IntelSection>
+
           <IntelSection title="Today's priorities" icon="🎯">
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {todaysPriorities.map((h, i) => {
@@ -142,4 +146,76 @@ function explainCriticality(h) {
   const sensitiveNearby = (h.nearby || []).filter((n) => /school|home|residen|drain|hospital|clinic/i.test(n))
   if (sensitiveNearby.length > 0) parts.push(`It sits near ${sensitiveNearby.length} sensitive facilit${sensitiveNearby.length > 1 ? 'ies' : 'y'}: ${sensitiveNearby.join(', ')}.`)
   return parts.join(' ')
+}
+
+// Fixed, deterministic Q&A — every answer is computed directly from the live
+// hotspot dataset, not generated text. No AI call, no risk of a wrong answer
+// during a live demo.
+function RecommendedQA({ hotspots, scored, areas }) {
+  const [openId, setOpenId] = useState(null)
+
+  const areaRisk = useMemo(() => {
+    const byArea = {}
+    hotspots.forEach((h) => {
+      if (!byArea[h.area]) byArea[h.area] = []
+      byArea[h.area].push(h)
+    })
+    let worst = null
+    for (const [area, list] of Object.entries(byArea)) {
+      const avg = list.reduce((s, h) => s + scoreHotspot(h).score, 0) / list.length
+      if (!worst || avg > worst.avg) worst = { area, avg, count: list.length }
+    }
+    return worst
+  }, [hotspots])
+
+  const questions = [
+    {
+      id: 'clean-first',
+      q: 'What should we clean first?',
+      a: () => {
+        const top = scored[0]
+        if (!top) return 'No hotspots tracked yet.'
+        return `${top.name} in ${top.area} — priority score ${top.priority.toFixed(1)}/10. ${recommendedAction(top, top.priority).detail}`
+      },
+    },
+    {
+      id: 'riskiest-area',
+      q: 'Which area is most at risk?',
+      a: () => {
+        if (!areaRisk) return 'Not enough data yet.'
+        return `${areaRisk.area} has the highest average priority score citywide (${areaRisk.avg.toFixed(1)}/10 across ${areaRisk.count} tracked site${areaRisk.count > 1 ? 's' : ''}).`
+      },
+    },
+    {
+      id: 'dispatch-today',
+      q: 'Where should crews be dispatched today?',
+      a: () => {
+        const urgent = scored.filter((h) => h.priority >= 7.5 && h.status !== 'resolved').slice(0, 3)
+        if (urgent.length === 0) return 'No sites currently exceed the urgent-dispatch threshold (7.5/10).'
+        return `${urgent.length} site${urgent.length > 1 ? 's' : ''} need dispatch within 24–48h: ${urgent.map((h) => h.name).join(', ')}.`
+      },
+    },
+    {
+      id: 'recovery-potential',
+      q: "What's our best recovery opportunity?",
+      a: () => {
+        const best = [...hotspots].sort((a, b) => b.recyclablePct - a.recyclablePct)[0]
+        if (!best) return 'No data yet.'
+        return `${best.name} in ${best.area} has the highest recoverable share at ${best.recyclablePct}% — a strong candidate for materials recovery instead of landfill routing.`
+      },
+    },
+  ]
+
+  return (
+    <div>
+      {questions.map((item) => (
+        <div key={item.id}>
+          <button className="intel-question-btn" onClick={() => setOpenId(openId === item.id ? null : item.id)}>
+            {item.q} {openId === item.id ? '▲' : '▼'}
+          </button>
+          {openId === item.id && <div className="intel-answer-box">{item.a()}</div>}
+        </div>
+      ))}
+    </div>
+  )
 }

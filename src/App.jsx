@@ -5,12 +5,14 @@ import AreaPanel from './components/AreaPanel'
 import Dashboard from './components/Dashboard'
 import ReportFlow from './components/ReportFlow'
 import Welcome from './components/Welcome'
+import GuidedTour from './components/GuidedTour'
 import CityIntelligence from './components/CityIntelligence'
 import { loadHotspots, upsertHotspot, saveReport, applyReportToHotspots, updateHotspotStatus } from './lib/store'
 import { buildAreaIndex, summarizeArea } from './lib/areaEngine'
 import { severityMeta } from './lib/priorityEngine'
 
 const SEEN_KEY = 'lwis_seen_welcome_v1'
+const INTEL_SEEN_KEY = 'lwis_intel_opened_v1'
 
 export default function App() {
   const [hotspots, setHotspots] = useState([])
@@ -21,7 +23,9 @@ export default function App() {
   const [reportOpen, setReportOpen] = useState(false)
   const [opsMode, setOpsMode] = useState(false)
   const [showWelcome, setShowWelcome] = useState(false)
+  const [tourOpen, setTourOpen] = useState(false)
   const [intelOpen, setIntelOpen] = useState(false)
+  const [intelSeen, setIntelSeen] = useState(true)
 
   useEffect(() => {
     let cancelled = false
@@ -37,6 +41,7 @@ export default function App() {
   useEffect(() => {
     try {
       if (!localStorage.getItem(SEEN_KEY)) setShowWelcome(true)
+      setIntelSeen(!!localStorage.getItem(INTEL_SEEN_KEY))
     } catch {
       setShowWelcome(true)
     }
@@ -45,6 +50,12 @@ export default function App() {
   function dismissWelcome() {
     setShowWelcome(false)
     try { localStorage.setItem(SEEN_KEY, '1') } catch {}
+  }
+
+  function openIntel() {
+    setIntelOpen(true)
+    setIntelSeen(true)
+    try { localStorage.setItem(INTEL_SEEN_KEY, '1') } catch {}
   }
 
   const areaIndex = useMemo(() => buildAreaIndex(hotspots), [hotspots])
@@ -58,6 +69,14 @@ export default function App() {
     if (!selectedArea) return hotspots
     return hotspots.filter((h) => h.area === selectedArea)
   }, [hotspots, selectedArea])
+
+  const areaFlyCenter = useMemo(() => {
+    if (!selectedArea || !areaIndex[selectedArea] || areaIndex[selectedArea].length === 0) return null
+    const list = areaIndex[selectedArea]
+    const lat = list.reduce((s, h) => s + h.lat, 0) / list.length
+    const lng = list.reduce((s, h) => s + h.lng, 0) / list.length
+    return { lat, lng }
+  }, [selectedArea, areaIndex])
 
   const cityStats = useMemo(() => {
     const total = hotspots.length
@@ -74,14 +93,13 @@ export default function App() {
 
   const handleSubmitted = useCallback(
     (report, nearestHotspotId) => {
-      const { hotspots: next, hotspotId, created } = applyReportToHotspots(hotspots, report, nearestHotspotId)
+      const { hotspots: next, hotspotId } = applyReportToHotspots(hotspots, report, nearestHotspotId)
       setHotspots(next)
       setReportOpen(false)
       setTab('map')
       const updated = next.find((h) => h.id === hotspotId)
       if (updated) setSelectedHotspot(updated)
 
-      // Persist to Supabase: the changed/created hotspot, plus the report itself.
       if (updated) upsertHotspot(updated)
       saveReport({ ...report, hotspotId, priorityScore: null })
     },
@@ -133,6 +151,7 @@ export default function App() {
         </nav>
 
         <div className="topbar-right">
+          <button className="guide-relaunch-btn" onClick={() => setTourOpen(true)} title="Replay the guided tour">❔</button>
           <button
             className="btn-ghost"
             onClick={() => setOpsMode((v) => !v)}
@@ -142,7 +161,7 @@ export default function App() {
             {opsMode ? '🏛️ Ops mode: ON' : '👤 Citizen view'}
           </button>
           <span className="demo-badge"><span className="dot" /> Live shared database</span>
-          <button className="btn-primary" onClick={() => { setSelectedHotspot(null); setReportOpen(true) }}>📸 Report waste</button>
+          <button id="report-btn" className="btn-primary" onClick={() => { setSelectedHotspot(null); setReportOpen(true) }}>📸 Report waste</button>
         </div>
       </header>
 
@@ -170,12 +189,26 @@ export default function App() {
 
       <div className="view-area">
         {tab === 'map' && (
-          <div className="map-wrap">
-            <MapView hotspots={visibleHotspots} onSelect={setSelectedHotspot} />
+          <div className="map-wrap" id="map-region">
+            <MapView
+              hotspots={visibleHotspots}
+              onSelect={setSelectedHotspot}
+              center={areaFlyCenter}
+              zoom={areaFlyCenter ? 14 : 12}
+              flyToOnCenterChange
+            />
 
             <div className="map-context-bar">
               <span className="map-context-title">🗺️ Lahore Waste Hotspot Map</span>
               <span className="map-context-sub">Pins are colored by severity — tap any pin for full site intelligence</span>
+              <button
+                id="intel-fab"
+                className={`intel-cta-btn ${!intelSeen ? 'pulse-attention' : ''}`}
+                onClick={openIntel}
+                style={{ marginLeft: 'auto' }}
+              >
+                <span className="intel-sparkle">✦</span> City Intelligence
+              </button>
             </div>
 
             <div className="stat-strip">
@@ -207,10 +240,6 @@ export default function App() {
                 })}
               </div>
             </div>
-
-            <button className="intel-fab" onClick={() => setIntelOpen(true)}>
-              <span className="intel-sparkle">✦</span> City Intelligence
-            </button>
           </div>
         )}
 
@@ -244,10 +273,13 @@ export default function App() {
         />
       )}
 
+      {tourOpen && <GuidedTour onFinish={() => setTourOpen(false)} />}
+
       {showWelcome && (
         <Welcome
-          onDismiss={dismissWelcome}
-          onStartReport={() => { dismissWelcome(); setSelectedHotspot(null); setReportOpen(true) }}
+          onExplore={dismissWelcome}
+          onReport={() => { dismissWelcome(); setSelectedHotspot(null); setReportOpen(true) }}
+          onGuide={() => { dismissWelcome(); setTourOpen(true) }}
         />
       )}
     </div>
