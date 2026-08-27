@@ -1084,30 +1084,43 @@ table.hs-table tr:hover td {
 .welcome-choice-btn{transition:transform .15s,border-color .15s}
 .welcome-choice-btn:hover{transform:translateX(3px);border-color:var(--accent)}
 
-/* Guided tour */
-.tour-backdrop{position:fixed;inset:0;z-index:980;background:rgba(5,7,10,0.55);backdrop-filter:blur(1px)}
-.tour-spotlight-ring{
-  position:fixed;border-radius:14px;
-  border:2px solid var(--accent);
-  box-shadow:0 0 0 4000px rgba(5,7,10,0.55), 0 0 24px rgba(207,154,62,0.5);
-  pointer-events:none;
-  transition:top .3s cubic-bezier(.16,1,.3,1), left .3s cubic-bezier(.16,1,.3,1), width .3s, height .3s;
-  z-index:981;
+/* Guided tour — a flat, high z-index dim layer plus a decorative glow ring.
+   No cutout/stacking-context tricks (those broke against backdrop-filter
+   elements elsewhere in the app), so this is simple and reliably visible. */
+.tour-dim {
+  position: fixed;
+  inset: 0;
+  z-index: 985;
+  background: rgba(5, 7, 10, 0.68);
+  animation: fadeIn 0.2s ease;
 }
-.tour-card{
-  position:fixed;
-  background:var(--bg-elevated);
-  border:1px solid var(--panel-border);
-  border-radius:var(--radius-lg);
-  padding:18px 20px;
-  box-shadow:0 20px 50px rgba(0,0,0,0.6);
-  z-index:982;
-  animation:modalIn .25s cubic-bezier(.16,1,.3,1);
+.tour-ring {
+  position: fixed;
+  border-radius: 14px;
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 0 3px rgba(207, 154, 62, 0.25), 0 0 30px rgba(207, 154, 62, 0.55);
+  pointer-events: none;
+  transition: top 0.3s cubic-bezier(0.16, 1, 0.3, 1), left 0.3s cubic-bezier(0.16, 1, 0.3, 1), width 0.3s, height 0.3s;
+  z-index: 990;
+  animation: tourRingPulse 1.6s ease-in-out infinite;
 }
-.tour-highlight-target{position:relative;z-index:982!important}
+@keyframes tourRingPulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(207,154,62,0.25), 0 0 30px rgba(207,154,62,0.55); }
+  50% { box-shadow: 0 0 0 6px rgba(207,154,62,0.15), 0 0 40px rgba(207,154,62,0.8); }
+}
+.tour-card {
+  position: fixed;
+  background: var(--bg-elevated);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  z-index: 991;
+  animation: modalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
 
-@media (max-width:520px){
-  .tour-card{width:calc(100vw - 32px)!important;left:16px!important}
+@media (max-width: 520px) {
+  .tour-card { width: calc(100vw - 32px) !important; left: 16px !important; }
 }
 
 /* City Intelligence prominence */
@@ -1145,3 +1158,19 @@ table.hs-table tr:hover td {
   border-radius:8px;padding:10px 12px;font-size:12px;color:var(--text-secondary);
   line-height:1.5;margin-top:6px;margin-bottom:10px;
 }
+
+/* Loading screen */
+.loading-mark{
+  width:52px;height:52px;border-radius:14px;margin:0 auto;
+  background:linear-gradient(135deg, var(--accent), #8a6323);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-weight:700;font-size:19px;color:#0a0e13;
+  animation:loadingMarkPulse 1.6s ease-in-out infinite;
+}
+@keyframes loadingMarkPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.loading-message{
+  font-family:var(--font-mono);font-size:12px;color:var(--text-muted);
+  animation:fadeIn .3s ease;
+}
+
+@keyframes choiceEnter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}

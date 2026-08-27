@@ -5,6 +5,7 @@ import AreaPanel from './components/AreaPanel'
 import Dashboard from './components/Dashboard'
 import ReportFlow from './components/ReportFlow'
 import Welcome from './components/Welcome'
+import LoadingScreen from './components/LoadingScreen'
 import GuidedTour from './components/GuidedTour'
 import CityIntelligence from './components/CityIntelligence'
 import { loadHotspots, upsertHotspot, saveReport, applyReportToHotspots, updateHotspotStatus } from './lib/store'
@@ -120,18 +121,7 @@ export default function App() {
   )
 
   if (dataLoading) {
-    return (
-      <div className="app-shell" style={{ alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ textAlign: 'center' }}>
-          <div className="ai-pulse-dots" style={{ justifyContent: 'center', marginBottom: 14 }}>
-            <span></span><span></span><span></span>
-          </div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-muted)' }}>
-            Loading city intelligence…
-          </div>
-        </div>
-      </div>
-    )
+    return <LoadingScreen />
   }
 
   return (

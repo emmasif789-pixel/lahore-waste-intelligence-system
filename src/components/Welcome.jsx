@@ -29,18 +29,21 @@ export default function Welcome({ onExplore, onReport, onGuide }) {
               detail="A short walkthrough of why this exists, what each part does, and how to use it"
               onClick={onGuide}
               featured
+              delay={0}
             />
             <ChoiceButton
               icon="🗺️"
               title="Explore the map myself"
               detail="Jump straight in and browse hotspots, areas, and city intelligence"
               onClick={onExplore}
+              delay={80}
             />
             <ChoiceButton
               icon="📸"
               title="Report waste now"
               detail="Submit a photo report and see the AI analysis and priority scoring in action"
               onClick={onReport}
+              delay={160}
             />
           </div>
         </div>
@@ -55,7 +58,7 @@ export default function Welcome({ onExplore, onReport, onGuide }) {
   )
 }
 
-function ChoiceButton({ icon, title, detail, onClick, featured }) {
+function ChoiceButton({ icon, title, detail, onClick, featured, delay = 0 }) {
   return (
     <button
       onClick={onClick}
@@ -71,6 +74,8 @@ function ChoiceButton({ icon, title, detail, onClick, featured }) {
         background: featured ? 'var(--accent-soft)' : 'var(--panel-2)',
         cursor: 'pointer',
         width: '100%',
+        animation: `choiceEnter 0.4s cubic-bezier(0.16,1,0.3,1) both`,
+        animationDelay: `${delay}ms`,
       }}
     >
       <span style={{ fontSize: 22, flexShrink: 0 }}>{icon}</span>

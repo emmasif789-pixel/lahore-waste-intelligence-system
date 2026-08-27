@@ -1,40 +1,42 @@
 import React, { useEffect, useState, useCallback } from 'react'
 
+// Copy is deliberately short, specific, and casual — pointing at what's
+// literally on screen rather than describing the system in the abstract.
 const STEPS = [
   {
     target: null,
-    title: 'Why this exists',
-    body: "Lahore generates waste faster than it can be tracked. Citizens see the same dumping sites pile up again and again, but there's no shared record of where, how bad, or what's being done about it. This system turns scattered garbage complaints into a structured, prioritized city intelligence layer — so cleanup crews know exactly where to go first, and why.",
-    emoji: '🎯',
+    title: "Quick context first",
+    body: "People report the same dumping spots over and over, and nobody's tracking whether anything actually gets cleaned. This is what that tracking looks like — for real, shared across everyone who opens this page.",
+    emoji: '👋',
   },
   {
     target: '#map-region',
-    title: 'The city intelligence map',
-    body: 'Every colored pin is a tracked waste hotspot — red is critical, green is low priority. Tap any pin to see its full breakdown: waste composition, recyclable share, hazard risk, and a recommended action. This is real, shared data every visitor sees the same version of.',
+    title: "Those pins? Real hotspots.",
+    body: "Red means it's bad, green means it's under control. Tap any pin and you'll get the full story — what kind of waste, how often it's reported, whether it's being burned, all of it.",
     emoji: '🗺️',
   },
   {
     target: '.area-panel-float',
-    title: 'Area intelligence',
-    body: "Pick a neighborhood here — Shahdara, Gulberg, Kot Lakhpat, and more — to see why that specific area ranks as a priority zone, with a plain-language explanation grounded in real recurrence and hazard data.",
+    title: "Pick a neighborhood",
+    body: "Shahdara, Gulberg, Kot Lakhpat — whatever area you care about, pick it here. You'll see why it's a priority in plain language, not just a number.",
     emoji: '📍',
   },
   {
     target: '#intel-fab',
-    title: 'City Intelligence',
-    body: "This is the operational brain of the system. It surfaces today's top priorities, explains why a hotspot is critical, recommends where to dispatch crews, flags emerging hotspots, and answers direct questions — all computed live from the actual tracked data, not guesswork.",
+    title: "This button does the thinking",
+    body: "Click it and ask things like \"what should we clean first\" or \"where's the risk today.\" Every answer comes straight from the live data — nothing's made up on the spot.",
     emoji: '✦',
   },
   {
     target: '#report-btn',
-    title: 'Reporting waste',
-    body: "Anyone can submit a photo report here. AI analyzes the waste composition and hazard risk, the system scores its cleanup priority, and the city intelligence layer updates immediately — for everyone, not just you. This is how the map stays alive.",
+    title: "You can add to this",
+    body: "Snap a photo of a dump site, drop a pin, and AI reads the waste type and risk right there. The map updates for everyone the second you submit — not just your screen.",
     emoji: '📸',
   },
   {
     target: null,
-    title: "You're ready",
-    body: "That's the whole loop: map → area → hotspot → photo report → AI analysis → priority score → city intelligence updates. You can reopen this guide anytime from the ❔ button in the top bar.",
+    title: "That's it",
+    body: "Map → pick an area → check a hotspot → report if you see something. Lost later? Hit the ❔ up top and I'll walk you through it again.",
     emoji: '✅',
   },
 ]
@@ -51,20 +53,16 @@ export default function GuidedTour({ onFinish }) {
       return
     }
     const el = document.querySelector(current.target)
-    if (el) {
-      setRect(el.getBoundingClientRect())
-      el.classList.add('tour-highlight-target')
-    } else {
-      setRect(null)
-    }
+    setRect(el ? el.getBoundingClientRect() : null)
   }, [current.target])
 
   useEffect(() => {
-    measure()
+    // Small delay so layout has settled (e.g. right after the welcome modal closes).
+    const t = setTimeout(measure, 60)
     window.addEventListener('resize', measure)
     return () => {
+      clearTimeout(t)
       window.removeEventListener('resize', measure)
-      document.querySelectorAll('.tour-highlight-target').forEach((el) => el.classList.remove('tour-highlight-target'))
     }
   }, [measure])
 
@@ -79,10 +77,11 @@ export default function GuidedTour({ onFinish }) {
   const cardStyle = getCardPosition(rect)
 
   return (
-    <div className="tour-backdrop">
+    <>
+      <div className="tour-dim" />
       {rect && (
         <div
-          className="tour-spotlight-ring"
+          className="tour-ring"
           style={{
             top: rect.top - 8,
             left: rect.left - 8,
@@ -109,19 +108,19 @@ export default function GuidedTour({ onFinish }) {
 
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
           <button className="btn-ghost" style={{ fontSize: 12, padding: '7px 12px' }} onClick={onFinish}>
-            Skip tour
+            Skip
           </button>
           <div style={{ display: 'flex', gap: 8 }}>
             {step > 0 && (
               <button className="btn-ghost" style={{ fontSize: 12, padding: '7px 12px' }} onClick={back}>← Back</button>
             )}
             <button className="btn-primary" style={{ fontSize: 12, padding: '7px 14px' }} onClick={next}>
-              {step === STEPS.length - 1 ? 'Get started' : 'Next →'}
+              {step === STEPS.length - 1 ? 'Got it' : 'Next →'}
             </button>
           </div>
         </div>
       </div>
-    </div>
+    </>
   )
 }
 
@@ -140,7 +139,6 @@ function getCardPosition(rect) {
   const viewportW = window.innerWidth
   const viewportH = window.innerHeight
 
-  // Prefer placing below the target; flip above if not enough room.
   let top = rect.bottom + margin
   if (top + 220 > viewportH) top = Math.max(margin, rect.top - 220 - margin)
 
