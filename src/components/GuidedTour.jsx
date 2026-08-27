@@ -91,7 +91,7 @@ export default function GuidedTour({ onFinish }) {
         />
       )}
 
-      <div className="tour-card" style={cardStyle}>
+      <div className="tour-card" style={cardStyle} key={step}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
           <span style={{ fontSize: 20 }}>{current.emoji}</span>
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15 }}>{current.title}</div>

@@ -12,7 +12,6 @@ import { loadHotspots, upsertHotspot, saveReport, applyReportToHotspots, updateH
 import { buildAreaIndex, summarizeArea } from './lib/areaEngine'
 import { severityMeta } from './lib/priorityEngine'
 
-const SEEN_KEY = 'lwis_seen_welcome_v1'
 const INTEL_SEEN_KEY = 'lwis_intel_opened_v1'
 
 export default function App() {
@@ -23,7 +22,7 @@ export default function App() {
   const [selectedArea, setSelectedArea] = useState('')
   const [reportOpen, setReportOpen] = useState(false)
   const [opsMode, setOpsMode] = useState(false)
-  const [showWelcome, setShowWelcome] = useState(false)
+  const [showWelcome, setShowWelcome] = useState(true)
   const [tourOpen, setTourOpen] = useState(false)
   const [intelOpen, setIntelOpen] = useState(false)
   const [intelSeen, setIntelSeen] = useState(true)
@@ -41,16 +40,12 @@ export default function App() {
 
   useEffect(() => {
     try {
-      if (!localStorage.getItem(SEEN_KEY)) setShowWelcome(true)
       setIntelSeen(!!localStorage.getItem(INTEL_SEEN_KEY))
-    } catch {
-      setShowWelcome(true)
-    }
+    } catch {}
   }, [])
 
   function dismissWelcome() {
     setShowWelcome(false)
-    try { localStorage.setItem(SEEN_KEY, '1') } catch {}
   }
 
   function openIntel() {
