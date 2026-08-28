@@ -61,6 +61,33 @@ Explore the map → Pick an area → Open a hotspot → Submit a photo
 
 A report submitted from one phone updates the shared database immediately — every other visitor sees the change, not just the person who submitted it.
 
+## Pitch deck
+
+<sub>Full presentation: [`/docs/lwis_pitch_deck.pptx`](./docs/lwis_pitch_deck.pptx)</sub>
+
+<table>
+<tr>
+<td><img src="./docs/slides/slide-01.jpg" width="400"/></td>
+<td><img src="./docs/slides/slide-02.jpg" width="400"/></td>
+</tr>
+<tr>
+<td><img src="./docs/slides/slide-03.jpg" width="400"/></td>
+<td><img src="./docs/slides/slide-04.jpg" width="400"/></td>
+</tr>
+<tr>
+<td><img src="./docs/slides/slide-05.jpg" width="400"/></td>
+<td><img src="./docs/slides/slide-06.jpg" width="400"/></td>
+</tr>
+<tr>
+<td><img src="./docs/slides/slide-07.jpg" width="400"/></td>
+<td><img src="./docs/slides/slide-08.jpg" width="400"/></td>
+</tr>
+<tr>
+<td><img src="./docs/slides/slide-09.jpg" width="400"/></td>
+<td><img src="./docs/slides/slide-10.jpg" width="400"/></td>
+</tr>
+</table>
+
 ## Impact and scalability
 
 The architecture is chosen specifically to scale cheaply:
