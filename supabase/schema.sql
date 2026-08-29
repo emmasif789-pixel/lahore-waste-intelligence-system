@@ -1,6 +1,8 @@
 -- Lahore Waste Intelligence System — Supabase schema
--- Mirrors the data shape used by src/lib/store.js so the localStorage
--- functions can be swapped for supabase-js calls with minimal changes.
+-- Mirrors the data shape used by src/lib/store.js.
+-- Safe to re-run: uses IF NOT EXISTS / ADD COLUMN IF NOT EXISTS / DROP+CREATE
+-- POLICY so running this again on an existing database upgrades it in place
+-- instead of erroring.
 
 create table if not exists hotspots (
   id text primary key,
@@ -18,9 +20,17 @@ create table if not exists hotspots (
   trend jsonb not null default '[]',
   status text not null default 'unresolved' check (status in ('unresolved','in_progress','resolved')),
   last_reported date,
+  before_snapshot jsonb,
+  source text,
+  type text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Upgrade path for a database created from an earlier version of this file.
+alter table hotspots add column if not exists before_snapshot jsonb;
+alter table hotspots add column if not exists source text;
+alter table hotspots add column if not exists type text;
 
 create table if not exists reports (
   id text primary key,
@@ -39,10 +49,28 @@ create index if not exists idx_hotspots_area on hotspots(area);
 create index if not exists idx_hotspots_severity on hotspots(severity);
 create index if not exists idx_reports_hotspot on reports(hotspot_id);
 
--- Row Level Security: allow public read (this is a public city-intelligence
--- dashboard), restrict writes to authenticated/service role in production.
+-- Row Level Security. This is a public city-intelligence demo with no login
+-- system yet, so citizen reports and ops-mode status changes come straight
+-- from the anon browser client — public insert/update is required for the
+-- app to function at all. Tighten this (require authenticated role) before
+-- any real production rollout with a real login system.
 alter table hotspots enable row level security;
 alter table reports enable row level security;
 
+drop policy if exists "Public read hotspots" on hotspots;
 create policy "Public read hotspots" on hotspots for select using (true);
+
+drop policy if exists "Public insert hotspots" on hotspots;
+create policy "Public insert hotspots" on hotspots for insert with check (true);
+
+drop policy if exists "Public update hotspots" on hotspots;
+create policy "Public update hotspots" on hotspots for update using (true);
+
+drop policy if exists "Public delete hotspots" on hotspots;
+create policy "Public delete hotspots" on hotspots for delete using (true);
+
+drop policy if exists "Public read reports" on reports;
 create policy "Public read reports" on reports for select using (true);
+
+drop policy if exists "Public insert reports" on reports;
+create policy "Public insert reports" on reports for insert with check (true);

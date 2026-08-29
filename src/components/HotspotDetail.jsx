@@ -101,24 +101,34 @@ export default function HotspotDetail({ hotspot, onClose, opsMode, onStatusChang
           <div className="data-row"><span className="k">Status</span><span className="v">{hotspot.status.replace('_', ' ')}</span></div>
           <div className="data-row"><span className="k">Last reported</span><span className="v">{hotspot.lastReported}</span></div>
 
+          {hotspot.source && <SourceCitation source={hotspot.source} type={hotspot.type} />}
+
           <div className="section-label">Waste composition (est.)</div>
-          {hotspot.wasteTypes.map((w) => (
-            <div className="bar-row" key={w.type}>
-              <div className="bar-label">{w.type}</div>
-              <div className="bar-track"><div className="bar-fill" style={{ width: `${w.pct}%`, background: TYPE_COLOR[w.type] || 'var(--accent)' }} /></div>
-              <div className="bar-pct">{w.pct}%</div>
-            </div>
-          ))}
+          {hotspot.wasteTypes.length === 0 ? (
+            <div className="empty-note">No photo-based composition analysis yet for this site — submit a report to add one.</div>
+          ) : (
+            hotspot.wasteTypes.map((w) => (
+              <div className="bar-row" key={w.type}>
+                <div className="bar-label">{w.type}</div>
+                <div className="bar-track"><div className="bar-fill" style={{ width: `${w.pct}%`, background: TYPE_COLOR[w.type] || 'var(--accent)' }} /></div>
+                <div className="bar-pct">{w.pct}%</div>
+              </div>
+            ))
+          )}
 
           <div className="section-label">Report trend (last {hotspot.trend.length} periods)</div>
           <TrendSparkline trend={hotspot.trend} />
 
           <div className="section-label">Nearby sensitive facilities</div>
-          <div className="chip-list">
-            {hotspot.nearby.map((n) => (
-              <span className="chip" key={n}>{n}</span>
-            ))}
-          </div>
+          {hotspot.nearby.length === 0 ? (
+            <div className="empty-note">No nearby facilities logged yet for this site.</div>
+          ) : (
+            <div className="chip-list">
+              {hotspot.nearby.map((n) => (
+                <span className="chip" key={n}>{n}</span>
+              ))}
+            </div>
+          )}
 
           <div className="section-label">Environmental / public-health risk</div>
           <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.55 }}>
@@ -130,7 +140,7 @@ export default function HotspotDetail({ hotspot, onClose, opsMode, onStatusChang
           </div>
 
           <div style={{ marginTop: 18, fontSize: 10.5, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-            📍 {hotspot.lat.toFixed(4)}, {hotspot.lng.toFixed(4)} · Community-reported / demo dataset
+            📍 {hotspot.lat.toFixed(4)}, {hotspot.lng.toFixed(4)} · {hotspot.source ? 'Sourced from public reporting — see citation above' : 'Community-reported / demo dataset'}
           </div>
         </div>
       </div>
@@ -190,6 +200,43 @@ function ImpactColumn({ label, recurrence, risk, burning, highlight }) {
       <div style={{ fontSize: 10.5, color: 'var(--text-muted)', marginBottom: 4 }}>recurrence</div>
       <div style={{ fontSize: 11, fontWeight: 600, color: risk.color }}>{risk.label} risk</div>
       {burning && <div style={{ fontSize: 10, color: 'var(--sev-critical)', marginTop: 2 }}>🔥 burning</div>}
+    </div>
+  )
+}
+
+function SourceCitation({ source, type }) {
+  const urlMatch = source.match(/https?:\/\/[^\s)]+/)
+  const url = urlMatch ? urlMatch[0] : null
+  const textWithoutUrl = url ? source.replace(url, '').trim() : source
+
+  return (
+    <div style={{ marginTop: 4 }}>
+      <div className="section-label">✅ Verified source</div>
+      <div
+        style={{
+          background: 'var(--teal-soft)',
+          border: '1px solid rgba(63,182,168,0.35)',
+          borderRadius: 'var(--radius-md)',
+          padding: 12,
+        }}
+      >
+        {type && (
+          <span className="chip" style={{ marginBottom: 8, display: 'inline-block' }}>
+            {type.replace(/_/g, ' ')}
+          </span>
+        )}
+        <div style={{ fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+          {textWithoutUrl}
+          {url && (
+            <>
+              {' '}
+              <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--teal)', textDecoration: 'underline' }}>
+                View source →
+              </a>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

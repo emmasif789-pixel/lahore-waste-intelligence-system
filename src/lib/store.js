@@ -24,6 +24,8 @@ function rowToHotspot(row) {
     status: row.status,
     lastReported: row.last_reported,
     beforeSnapshot: row.before_snapshot || null,
+    source: row.source || null,
+    type: row.type || null,
   }
 }
 
@@ -45,10 +47,13 @@ function hotspotToRow(h) {
     status: h.status || 'unresolved',
     last_reported: h.lastReported || null,
     before_snapshot: h.beforeSnapshot || null,
+    source: h.source || null,
+    type: h.type || null,
   }
 }
 
 // --- hotspots ---
+
 
 export async function loadHotspots() {
   try {
@@ -61,6 +66,28 @@ export async function loadHotspots() {
       const { error: insertError } = await supabase.from('hotspots').insert(rows)
       if (insertError) throw insertError
       return seedHotspots
+    }
+
+    // The seed dataset can change between deployments (e.g. swapping in a
+    // researched, cited dataset that happens to reuse the same LHR-00N id
+    // scheme as an older seed). ID overlap alone can't detect that swap, so
+    // compare actual content: if the row for the seed's first id doesn't
+    // match that seed entry's name, the database is running stale seed data
+    // from an earlier version and needs a full resync.
+    const anchor = seedHotspots[0]
+    const dbAnchorRow = data.find((r) => r.id === anchor.id)
+    const looksStale = !dbAnchorRow || dbAnchorRow.name !== anchor.name
+
+    if (looksStale) {
+      // Only clear the seed-id rows themselves — never touch rows with other
+      // ids, since those are real citizen-submitted hotspots and must survive
+      // a seed-data resync.
+      await supabase.from('hotspots').delete().in('id', seedHotspots.map((h) => h.id))
+      const rows = seedHotspots.map(hotspotToRow)
+      const { error: reseedError } = await supabase.from('hotspots').insert(rows)
+      if (reseedError) throw reseedError
+      const { data: fresh } = await supabase.from('hotspots').select('*').order('id')
+      return fresh ? fresh.map(rowToHotspot) : seedHotspots
     }
 
     return data.map(rowToHotspot)

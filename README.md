@@ -48,7 +48,7 @@ Most hackathon "waste apps" stop at a reporting form. LWIS is deliberately built
 - The priority score is **fully auditable** — every weight (severity, recurrence, proximity, hazard, trend) is visible and traceable, unlike opaque AI-scored systems judges see elsewhere.
 - **Impact is verified, not narrated** — resolving a hotspot snapshots its pre-cleanup state, so before/after comparisons are backed by real data transitions, not marketing claims.
 - Data is **real and shared**, backed by a live Postgres database (Supabase) — not per-browser localStorage that only the demo presenter can see.
-- The system is explicit about what's real: seeded demo data is clearly labeled as such everywhere in the UI, and the AI vision pipeline honestly discloses when it's running a live model versus a fallback heuristic — no fabricated confidence.
+- The system is explicit about what's real: **the seed dataset is 10 real, publicly documented Lahore waste sites** — Lakhodair Landfill, Mehmood Booti, Saggian, and others — each with a cited public source (news reporting, LWMC's cleanliness drive announcements, a peer-reviewed groundwater-contamination study). Severity, location, and site identity are drawn from those sources; per-site waste composition and recovery percentages haven't been photo-assessed yet and are marked as such in the UI rather than invented. Anything submitted through the live Report flow is genuinely fresh, AI-analyzed data. The AI vision pipeline also honestly discloses when it's running a live model versus a fallback heuristic — no fabricated confidence, anywhere.
 - It sits at the intersection of **both** challenge themes simultaneously: Clean City (the waste/pollution problem itself) and City Intelligence (the AI/data/mapping layer that makes the problem tractable) — not shoehorned into one track.
 
 ## How it works — the full loop
@@ -135,7 +135,7 @@ See [`supabase/schema.sql`](./supabase/schema.sql) — mirrors the shape consume
 src/
   components/     UI components (map, dashboard, report flow, city intelligence, tour)
   lib/            Priority engine, area intelligence, AI analysis, Supabase client, exports
-  data/           Seed demo dataset (clearly labeled as such throughout the UI)
+  data/           Seed dataset — 10 real, cited Lahore waste sites (see each hotspot's source citation in-app)
 api/
   analyze.js      Vercel serverless function — Groq vision analysis endpoint
 supabase/
