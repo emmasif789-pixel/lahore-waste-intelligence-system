@@ -1,8 +1,19 @@
-import React, { useMemo } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents, ZoomControl, useMap } from 'react-leaflet'
+import React, { useMemo, useState } from 'react'
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, ZoomControl, useMap, GeoJSON, CircleMarker, Tooltip } from 'react-leaflet'
 import L from 'leaflet'
 import { severityMeta } from '../lib/priorityEngine'
 import { LAHORE_CENTER } from '../lib/geo'
+import lahoreDensity from '../data/lahoreDensity.json'
+
+// Proportional-symbol scaling: radius by population, real PBS 2023 figures.
+// Min/max picked from the actual tehsil population range so circles stay
+// legible at city zoom without exaggerating the smallest tehsil (Raiwind).
+const POP_MIN = Math.min(...lahoreDensity.tehsilPoints.map((t) => t.population_2023))
+const POP_MAX = Math.max(...lahoreDensity.tehsilPoints.map((t) => t.population_2023))
+function popRadius(pop) {
+  const t = (pop - POP_MIN) / (POP_MAX - POP_MIN)
+  return 18 + t * 34 // px radius range, tuned for city-wide zoom levels
+}
 
 function makeIcon(severity, pulse) {
   const meta = severityMeta(severity)
@@ -71,6 +82,7 @@ export default function MapView({
   height = '100%',
   scrollWheelZoom = true,
   flyToOnCenterChange = false,
+  showDensityLayer = false,
 }) {
   const icons = useMemo(() => {
     const map = {}
@@ -94,6 +106,32 @@ export default function MapView({
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
+      {showDensityLayer && (
+        <GeoJSON
+          data={lahoreDensity.districtBoundary}
+          style={{ color: '#3fb6a8', weight: 2, opacity: 0.55, fillOpacity: 0.03, dashArray: '4 4' }}
+        />
+      )}
+      {showDensityLayer &&
+        lahoreDensity.tehsilPoints.map((t) => (
+          <CircleMarker
+            key={t.name}
+            center={[t.lat, t.lng]}
+            radius={popRadius(t.population_2023)}
+            pathOptions={{
+              color: '#f2a93b',
+              weight: 1.5,
+              fillColor: '#f2a93b',
+              fillOpacity: 0.14,
+            }}
+          >
+            <Tooltip direction="top" opacity={1}>
+              <div style={{ fontWeight: 600 }}>{t.name}</div>
+              <div>{t.population_2023.toLocaleString()} people (PBS 2023)</div>
+              <div>~{t.estimated_waste_tpd.toLocaleString()} tonnes/day est. waste</div>
+            </Tooltip>
+          </CircleMarker>
+        ))}
       {hotspots.map((h) => (
         <Marker
           key={h.id}
