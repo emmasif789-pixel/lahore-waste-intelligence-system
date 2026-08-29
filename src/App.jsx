@@ -26,6 +26,7 @@ export default function App() {
   const [tourOpen, setTourOpen] = useState(false)
   const [intelOpen, setIntelOpen] = useState(false)
   const [intelSeen, setIntelSeen] = useState(true)
+  const [showDensityLayer, setShowDensityLayer] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -182,12 +183,20 @@ export default function App() {
               center={areaFlyCenter}
               zoom={areaFlyCenter ? 14 : 12}
               flyToOnCenterChange
+              showDensityLayer={showDensityLayer}
             />
 
             <div className="map-top-stack">
               <div className="map-context-bar">
                 <span className="map-context-title">🗺️ Lahore Waste Hotspot Map</span>
                 <span className="map-context-sub">Pins are colored by severity — tap any pin for full site intelligence</span>
+                <button
+                  className={`density-toggle-btn ${showDensityLayer ? 'active' : ''}`}
+                  onClick={() => setShowDensityLayer((v) => !v)}
+                  title="Population & waste-generation density, from PBS Census 2023 and the Urban Unit 2025 SWM report — not citizen-reported hotspots"
+                >
+                  🌐 {showDensityLayer ? 'Hide' : 'Show'} area density
+                </button>
                 <button
                   id="intel-fab"
                   className={`intel-cta-btn ${!intelSeen ? 'pulse-attention' : ''}`}
