@@ -1181,6 +1181,20 @@ table.hs-table tr:hover td {
 }
 .intel-cta-btn:hover{filter:brightness(1.1)}
 .intel-cta-btn.pulse-attention{animation:intelPulseAttn 1.8s ease-in-out infinite}
+
+.density-toggle-btn{
+  display:flex;align-items:center;gap:6px;
+  background:var(--panel-2);border:1px solid var(--panel-border);color:var(--text-secondary);
+  padding:8px 14px;border-radius:20px;font-weight:600;font-size:12px;cursor:pointer;
+  flex-shrink:0;
+}
+.density-toggle-btn:hover{border-color:var(--teal);color:var(--text-primary)}
+.density-toggle-btn.active{
+  background:rgba(63,182,168,0.15);border-color:var(--teal);color:var(--teal);
+}
+@media (max-width: 768px){
+  .density-toggle-btn{font-size:11px;padding:7px 10px}
+}
 @keyframes intelPulseAttn{
   0%,100%{box-shadow:0 2px 12px rgba(207,154,62,0.4)}
   50%{box-shadow:0 2px 24px rgba(207,154,62,0.85)}
