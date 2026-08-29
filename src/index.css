@@ -1007,13 +1007,60 @@ table.hs-table tr:hover td {
 /* Mobile */
 @media (max-width: 720px) {
   .brand-sub { display: none; }
+  .brand-title { font-size: 13px; }
   .nav-tab { padding: 7px 10px; font-size: 12px; }
-  .map-context-bar { padding: 8px 12px; }
+  .btn-label-full { display: none; }
+  .demo-badge { display: none; }
+  .btn-ghost { padding: 8px 10px; }
+
+  /* Map overlays: switch from hand-placed absolute offsets to a natural
+     stacked flow, so nothing overlaps regardless of content height. */
+  .map-top-stack {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    z-index: 401;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .map-context-bar {
+    position: static;
+    padding: 8px 12px;
+  }
   .map-context-sub { display: none; }
-  .area-panel-float { width: calc(100vw - 28px); top: 140px; max-height: 40vh; }
+  .intel-cta-btn { font-size: 11px; padding: 7px 10px; }
+
+  .stat-strip {
+    position: static;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    overflow: visible;
+  }
+  .stat-chip { min-width: 0; padding: 8px 10px; }
+  .stat-chip .stat-value { font-size: 16px; }
+
+  .area-panel-float {
+    position: static;
+    width: 100%;
+    max-width: 100%;
+    max-height: 34vh;
+  }
+
+  .legend-float { padding: 8px 10px; }
+  .legend-items-row { gap: 8px; font-size: 10.5px; }
+
   .slide-panel { width: 100vw; }
-  .stat-strip { top: 96px; }
   .dashboard { padding: 16px 14px 50px; }
+
+  .map-pan-pad { bottom: 84px; }
+}
+
+@media (max-width: 400px) {
+  .map-context-title { font-size: 12.5px; }
+  .intel-label { display: none; }
 }
 
 .empty-note {

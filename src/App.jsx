@@ -143,7 +143,8 @@ export default function App() {
             style={opsMode ? { borderColor: 'var(--accent)', color: 'var(--accent)' } : undefined}
             title="Toggle between citizen view and city operations view"
           >
-            {opsMode ? '🏛️ Ops mode: ON' : '👤 Citizen view'}
+            <span>{opsMode ? '🏛️' : '👤'}</span>
+            <span className="btn-label-full"> {opsMode ? 'Ops mode: ON' : 'Citizen view'}</span>
           </button>
           <span className="demo-badge"><span className="dot" /> Live shared database</span>
           <button id="report-btn" className="btn-primary" onClick={() => { setSelectedHotspot(null); setReportOpen(true) }}>📸 Report waste</button>
@@ -183,33 +184,35 @@ export default function App() {
               flyToOnCenterChange
             />
 
-            <div className="map-context-bar">
-              <span className="map-context-title">🗺️ Lahore Waste Hotspot Map</span>
-              <span className="map-context-sub">Pins are colored by severity — tap any pin for full site intelligence</span>
-              <button
-                id="intel-fab"
-                className={`intel-cta-btn ${!intelSeen ? 'pulse-attention' : ''}`}
-                onClick={openIntel}
-                style={{ marginLeft: 'auto' }}
-              >
-                <span className="intel-sparkle">✦</span> City Intelligence
-              </button>
-            </div>
+            <div className="map-top-stack">
+              <div className="map-context-bar">
+                <span className="map-context-title">🗺️ Lahore Waste Hotspot Map</span>
+                <span className="map-context-sub">Pins are colored by severity — tap any pin for full site intelligence</span>
+                <button
+                  id="intel-fab"
+                  className={`intel-cta-btn ${!intelSeen ? 'pulse-attention' : ''}`}
+                  onClick={openIntel}
+                  style={{ marginLeft: 'auto' }}
+                >
+                  <span className="intel-sparkle">✦</span> <span className="intel-label">City Intelligence</span>
+                </button>
+              </div>
 
-            <div className="stat-strip">
-              <StatChip label="Total hotspots" value={cityStats.total} />
-              <StatChip label="High priority" value={cityStats.highPriority} color="var(--sev-high)" />
-              <StatChip label="Avg. recyclable" value={`${cityStats.avgRecyclable}%`} color="var(--teal)" />
-              <StatChip label="Burning / hazard" value={cityStats.burning} color="var(--sev-critical)" />
-            </div>
+              <div className="stat-strip">
+                <StatChip label="Total hotspots" value={cityStats.total} />
+                <StatChip label="High priority" value={cityStats.highPriority} color="var(--sev-high)" />
+                <StatChip label="Avg. recyclable" value={`${cityStats.avgRecyclable}%`} color="var(--teal)" />
+                <StatChip label="Burning / hazard" value={cityStats.burning} color="var(--sev-critical)" />
+              </div>
 
-            <AreaPanel
-              areaNames={areaNames}
-              selectedArea={selectedArea}
-              onSelectArea={setSelectedArea}
-              summary={areaSummary}
-              onSelectHotspot={setSelectedHotspot}
-            />
+              <AreaPanel
+                areaNames={areaNames}
+                selectedArea={selectedArea}
+                onSelectArea={setSelectedArea}
+                summary={areaSummary}
+                onSelectHotspot={setSelectedHotspot}
+              />
+            </div>
 
             <div className="legend-float">
               <div className="legend-heading">Severity legend</div>
