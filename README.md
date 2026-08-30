@@ -7,7 +7,7 @@ Built for **Smart City Hackathon Lahore 2026**, addressing both the **Clean City
 🔗 **Live prototype:** [lahore-waste-intelligence-system.vercel.app](https://lahore-waste-intelligence-system.vercel.app)
 💻 **Source code:** this repository
 📊 **Pitch deck:** [`/docs/lwis_pitch_deck.pptx`](./docs/lwis_pitch_deck.pptx)
-🎥 **Demo video:** _link added at submission_
+🎥 **Demo video:** [Watch on YouTube](https://youtu.be/nUsXA_Zt07w)
 
 ---
 
