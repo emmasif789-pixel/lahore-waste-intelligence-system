@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMapEvents, ZoomControl, useM
 import L from 'leaflet'
 import { severityMeta } from '../lib/priorityEngine'
 import { LAHORE_CENTER } from '../lib/geo'
+import { computeTehsilStats } from '../lib/densityInsight'
 import lahoreDensity from '../data/lahoreDensity.json'
 
 // Proportional-symbol scaling: radius by population, real PBS 2023 figures.
@@ -83,6 +84,7 @@ export default function MapView({
   scrollWheelZoom = true,
   flyToOnCenterChange = false,
   showDensityLayer = false,
+  allHotspotsForDensity,
 }) {
   const icons = useMemo(() => {
     const map = {}
@@ -91,6 +93,14 @@ export default function MapView({
     }
     return map
   }, [])
+
+  // Always computed city-wide (not affected by the area filter), so the
+  // under-monitored signal stays consistent regardless of what's selected.
+  const densitySourceHotspots = allHotspotsForDensity || hotspots
+  const tehsilStats = useMemo(
+    () => (showDensityLayer ? computeTehsilStats(densitySourceHotspots) : []),
+    [showDensityLayer, densitySourceHotspots]
+  )
 
   return (
     <MapContainer
@@ -113,22 +123,27 @@ export default function MapView({
         />
       )}
       {showDensityLayer &&
-        lahoreDensity.tehsilPoints.map((t) => (
+        tehsilStats.map((t) => (
           <CircleMarker
             key={t.name}
             center={[t.lat, t.lng]}
             radius={popRadius(t.population_2023)}
             pathOptions={{
-              color: '#f2a93b',
-              weight: 1.5,
-              fillColor: '#f2a93b',
-              fillOpacity: 0.14,
+              color: t.isUnderMonitored ? '#e38a2e' : '#f2a93b',
+              weight: t.isUnderMonitored ? 2.5 : 1.5,
+              fillColor: t.isUnderMonitored ? '#e38a2e' : '#f2a93b',
+              fillOpacity: t.isUnderMonitored ? 0.2 : 0.14,
+              dashArray: t.isUnderMonitored ? '6 4' : undefined,
             }}
           >
             <Tooltip direction="top" opacity={1}>
               <div style={{ fontWeight: 600 }}>{t.name}</div>
               <div>{t.population_2023.toLocaleString()} people (PBS 2023)</div>
               <div>~{t.estimated_waste_tpd.toLocaleString()} tonnes/day est. waste</div>
+              <div>{t.reportCount} citizen report{t.reportCount === 1 ? '' : 's'} on file</div>
+              {t.isUnderMonitored && (
+                <div style={{ color: '#e38a2e', fontWeight: 600, marginTop: 2 }}>⚠️ Under-monitored relative to population</div>
+              )}
             </Tooltip>
           </CircleMarker>
         ))}

@@ -184,6 +184,7 @@ export default function App() {
               zoom={areaFlyCenter ? 14 : 12}
               flyToOnCenterChange
               showDensityLayer={showDensityLayer}
+              allHotspotsForDensity={hotspots}
             />
 
             <div className="map-top-stack">

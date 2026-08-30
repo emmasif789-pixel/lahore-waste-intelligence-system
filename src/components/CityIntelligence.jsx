@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import { scoreHotspot, recommendedAction, severityMeta } from '../lib/priorityEngine'
+import { describeUnderMonitoredAreas } from '../lib/densityInsight'
 
 // Every insight here is computed directly from the live hotspot dataset —
 // there is no separate AI call or fabricated narrative. This panel exists to
@@ -203,6 +204,11 @@ function RecommendedQA({ hotspots, scored, areas }) {
         if (!best) return 'No data yet.'
         return `${best.name} in ${best.area} has the highest recoverable share at ${best.recyclablePct}% — a strong candidate for materials recovery instead of landfill routing.`
       },
+    },
+    {
+      id: 'under-monitored',
+      q: 'Which populated areas are under-monitored?',
+      a: () => describeUnderMonitoredAreas(hotspots),
     },
   ]
 
