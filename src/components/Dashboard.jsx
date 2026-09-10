@@ -4,6 +4,7 @@ import ImpactBanner from './ImpactBanner'
 import CityHealth from './CityHealth'
 import { exportCleanupReportCSV } from '../lib/exportReport'
 import { useCountUp } from '../lib/useCountUp'
+import { IconMap, IconAlertTriangle, IconRecycle, IconRepeat, IconFlame, IconFileText, IconDownload, IconClipboardList } from './Icons'
 
 export default function Dashboard({ hotspots, onSelectHotspot }) {
   const scored = useMemo(
@@ -25,25 +26,25 @@ export default function Dashboard({ hotspots, onSelectHotspot }) {
       <ImpactBanner hotspots={hotspots} />
 
       <div className="dashboard-grid">
-        <BigStat icon="🗺️" value={total} caption="Total hotspots tracked" />
-        <BigStat icon="🚨" value={highPriority} caption="High-priority sites" accent="var(--sev-high)" />
-        <BigStat icon="♻️" value={avgRecyclable} suffix="%" caption="Avg. recyclable share" accent="var(--teal)" />
-        <BigStat icon="🔁" value={recurring} caption="Recurring locations (50%+)" />
-        <BigStat icon="🔥" value={burning} caption="Burning / hazard hotspots" accent="var(--sev-critical)" />
-        <BigStat icon="📝" value={totalReports} caption="Total citizen reports" />
+        <BigStat icon={<IconMap size={18} />} value={total} caption="Total hotspots tracked" />
+        <BigStat icon={<IconAlertTriangle size={18} />} value={highPriority} caption="High-priority sites" accent="var(--sev-high)" />
+        <BigStat icon={<IconRecycle size={18} />} value={avgRecyclable} suffix="%" caption="Avg. recyclable share" accent="var(--teal)" />
+        <BigStat icon={<IconRepeat size={18} />} value={recurring} caption="Recurring locations (50%+)" />
+        <BigStat icon={<IconFlame size={18} />} value={burning} caption="Burning / hazard hotspots" accent="var(--sev-critical)" />
+        <BigStat icon={<IconFileText size={18} />} value={totalReports} caption="Total citizen reports" />
       </div>
 
       <CityHealth hotspots={hotspots} />
 
-      <div className="section-heading">🎯 Clean these locations first</div>
+      <div className="section-heading"><IconAlertTriangle size={16} /> Clean these locations first</div>
       <div className="section-caption" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
         <span>Ranked by the Cleanup Priority Engine — severity, recurrence, proximity to sensitive sites, waste risk, and hazard indicators.</span>
         <button
           className="btn-primary"
-          style={{ background: 'linear-gradient(135deg, var(--teal), #2a8a7f)', flexShrink: 0 }}
+          style={{ background: 'linear-gradient(135deg, var(--teal), #2a8a7f)', flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 7 }}
           onClick={() => exportCleanupReportCSV(hotspots)}
         >
-          ⬇ Export cleanup report (CSV)
+          <IconDownload size={14} /> Export cleanup report (CSV)
         </button>
       </div>
       <div className="priority-list">
@@ -63,7 +64,7 @@ export default function Dashboard({ hotspots, onSelectHotspot }) {
         })}
       </div>
 
-      <div className="section-heading">📋 All hotspots</div>
+      <div className="section-heading"><IconClipboardList size={16} /> All hotspots</div>
       <div className="section-caption">Full city-wide dataset. Click any row for full intelligence.</div>
       <div className="table-wrap">
         <table className="hs-table">
@@ -86,7 +87,7 @@ export default function Dashboard({ hotspots, onSelectHotspot }) {
                 <tr key={h.id} onClick={() => onSelectHotspot(h)}>
                   <td>{h.name}</td>
                   <td>{h.area}</td>
-                  <td><span className="severity-tag" style={{ background: meta.color + '26', color: meta.color }}>{meta.emoji} {meta.label}</span></td>
+                  <td><span className="severity-tag" style={{ background: meta.color + '26', color: meta.color }}><span className="severity-dot" style={{ background: meta.color }} />{meta.label}</span></td>
                   <td className="mono">{h.recurrence}%</td>
                   <td className="mono">{h.recyclablePct}%</td>
                   <td className="mono">{h.reportsCount}</td>
@@ -111,7 +112,7 @@ function BigStat({ icon, value, suffix = '', caption, accent }) {
   const rounded = Number.isInteger(value) ? Math.round(animated) : animated.toFixed(0)
   return (
     <div className="big-stat-card">
-      <div className="stat-icon">{icon}</div>
+      <div className="stat-icon" style={accent ? { color: accent } : undefined}>{icon}</div>
       <div className="stat-num" style={accent ? { color: accent } : undefined}>{rounded}{suffix}</div>
       <div className="stat-caption">{caption}</div>
     </div>

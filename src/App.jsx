@@ -8,6 +8,7 @@ import Welcome from './components/Welcome'
 import LoadingScreen from './components/LoadingScreen'
 import GuidedTour from './components/GuidedTour'
 import CityIntelligence from './components/CityIntelligence'
+import { IconMap, IconGlobe } from './components/Icons'
 import { loadHotspots, upsertHotspot, saveReport, applyReportToHotspots, updateHotspotStatus } from './lib/store'
 import { buildAreaIndex, summarizeArea } from './lib/areaEngine'
 import { severityMeta } from './lib/priorityEngine'
@@ -189,14 +190,14 @@ export default function App() {
 
             <div className="map-top-stack">
               <div className="map-context-bar">
-                <span className="map-context-title">🗺️ Lahore Waste Hotspot Map</span>
+                <span className="map-context-title"><IconMap size={14} /> Lahore Waste Hotspot Map</span>
                 <span className="map-context-sub">Pins are colored by severity — tap any pin for full site intelligence</span>
                 <button
                   className={`density-toggle-btn ${showDensityLayer ? 'active' : ''}`}
                   onClick={() => setShowDensityLayer((v) => !v)}
                   title="Population & waste-generation density, from PBS Census 2023 and the Urban Unit 2025 SWM report — not citizen-reported hotspots"
                 >
-                  🌐 {showDensityLayer ? 'Hide' : 'Show'} area density
+                  <IconGlobe size={13} /> {showDensityLayer ? 'Hide' : 'Show'} area density
                 </button>
                 <button
                   id="intel-fab"

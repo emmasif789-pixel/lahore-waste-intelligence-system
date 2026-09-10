@@ -5,6 +5,7 @@ import { severityMeta } from '../lib/priorityEngine'
 import { LAHORE_CENTER } from '../lib/geo'
 import { computeTehsilStats } from '../lib/densityInsight'
 import lahoreDensity from '../data/lahoreDensity.json'
+import { IconChevronUp, IconChevronDown, IconChevronLeft, IconChevronRight, IconAlertTriangle } from './Icons'
 
 // Proportional-symbol scaling: radius by population, real PBS 2023 figures.
 // Min/max picked from the actual tehsil population range so circles stay
@@ -62,12 +63,12 @@ function PanControls() {
   const pan = (dx, dy) => map.panBy([dx, dy], { animate: true, duration: 0.35 })
   return (
     <div className="map-pan-pad">
-      <button className="pan-btn pan-up" onClick={() => pan(0, -110)} aria-label="Pan up">▲</button>
+      <button className="pan-btn pan-up" onClick={() => pan(0, -110)} aria-label="Pan up"><IconChevronUp size={13} /></button>
       <div className="pan-mid-row">
-        <button className="pan-btn pan-left" onClick={() => pan(-110, 0)} aria-label="Pan left">◀</button>
-        <button className="pan-btn pan-right" onClick={() => pan(110, 0)} aria-label="Pan right">▶</button>
+        <button className="pan-btn pan-left" onClick={() => pan(-110, 0)} aria-label="Pan left"><IconChevronLeft size={13} /></button>
+        <button className="pan-btn pan-right" onClick={() => pan(110, 0)} aria-label="Pan right"><IconChevronRight size={13} /></button>
       </div>
-      <button className="pan-btn pan-down" onClick={() => pan(0, 110)} aria-label="Pan down">▼</button>
+      <button className="pan-btn pan-down" onClick={() => pan(0, 110)} aria-label="Pan down"><IconChevronDown size={13} /></button>
     </div>
   )
 }
@@ -142,7 +143,9 @@ export default function MapView({
               <div>~{t.estimated_waste_tpd.toLocaleString()} tonnes/day est. waste</div>
               <div>{t.reportCount} citizen report{t.reportCount === 1 ? '' : 's'} on file</div>
               {t.isUnderMonitored && (
-                <div style={{ color: '#e38a2e', fontWeight: 600, marginTop: 2 }}>⚠️ Under-monitored relative to population</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#e38a2e', fontWeight: 600, marginTop: 2 }}>
+                  <IconAlertTriangle size={11} /> Under-monitored relative to population
+                </div>
               )}
             </Tooltip>
           </CircleMarker>

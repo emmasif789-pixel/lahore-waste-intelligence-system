@@ -1,6 +1,7 @@
 import React from 'react'
 import Gauge from './Gauge'
 import { scoreHotspot, recommendedAction, severityMeta, riskBandFromScore } from '../lib/priorityEngine'
+import { IconX, IconArrowRight, IconCamera, IconCheckCircle, IconMapPin, IconFlame } from './Icons'
 
 const TYPE_COLOR = {
   Organic: '#4fae64',
@@ -33,14 +34,14 @@ export default function HotspotDetail({ hotspot, onClose, opsMode, onStatusChang
         <div className="slide-panel-header">
           <div>
             <div className="severity-tag" style={{ background: meta.color + '26', color: meta.color }}>
-              {meta.emoji} {meta.label}
+              <span className="severity-dot" style={{ background: meta.color }} />{meta.label}
             </div>
             <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 17, marginTop: 8 }}>{hotspot.name}</div>
             <div style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>
               {hotspot.area} · <span className="mono">{hotspot.id}</span>
             </div>
           </div>
-          <button className="icon-btn" onClick={onClose} aria-label="Close">✕</button>
+          <button className="icon-btn" onClick={onClose} aria-label="Close"><IconX size={15} /></button>
         </div>
 
         <div className="slide-panel-body">
@@ -97,7 +98,7 @@ export default function HotspotDetail({ hotspot, onClose, opsMode, onStatusChang
           <div className="data-row"><span className="k">Reports filed</span><span className="v">{hotspot.reportsCount}</span></div>
           <div className="data-row"><span className="k">Recurrence rate</span><span className="v">{hotspot.recurrence}%</span></div>
           <div className="data-row"><span className="k">Recyclable share (est.)</span><span className="v">{hotspot.recyclablePct}%</span></div>
-          <div className="data-row"><span className="k">Open burning observed</span><span className="v">{hotspot.burning ? 'Yes ⚠️' : 'No'}</span></div>
+          <div className="data-row"><span className="k">Open burning observed</span><span className="v">{hotspot.burning ? 'Yes' : 'No'}</span></div>
           <div className="data-row"><span className="k">Status</span><span className="v">{hotspot.status.replace('_', ' ')}</span></div>
           <div className="data-row"><span className="k">Last reported</span><span className="v">{hotspot.lastReported}</span></div>
 
@@ -139,8 +140,8 @@ export default function HotspotDetail({ hotspot, onClose, opsMode, onStatusChang
               : 'Risk is currently contained to the immediate site; standard collection should prevent escalation.'}
           </div>
 
-          <div style={{ marginTop: 18, fontSize: 10.5, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-            📍 {hotspot.lat.toFixed(4)}, {hotspot.lng.toFixed(4)} · {hotspot.source ? 'Sourced from public reporting — see citation above' : 'Community-reported / demo dataset'}
+          <div style={{ marginTop: 18, fontSize: 10.5, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: 5 }}>
+            <IconMapPin size={11} /> {hotspot.lat.toFixed(4)}, {hotspot.lng.toFixed(4)} · {hotspot.source ? 'Sourced from public reporting — see citation above' : 'Community-reported / demo dataset'}
           </div>
         </div>
       </div>
@@ -155,7 +156,7 @@ function ImpactVerification({ hotspot, currentScore }) {
 
   return (
     <div style={{ marginTop: 4 }}>
-      <div className="section-label">📸 Impact verification</div>
+      <div className="section-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><IconCamera size={12} /> Impact verification</div>
       <div
         style={{
           background: 'var(--sev-low-soft)',
@@ -171,7 +172,7 @@ function ImpactVerification({ hotspot, currentScore }) {
             risk={beforeBand}
             burning={before.burning}
           />
-          <div style={{ fontSize: 18, color: 'var(--text-muted)' }}>→</div>
+          <div style={{ color: 'var(--text-muted)' }}><IconArrowRight size={18} /></div>
           <ImpactColumn
             label="AFTER cleanup"
             recurrence={hotspot.recurrence}
@@ -199,7 +200,11 @@ function ImpactColumn({ label, recurrence, risk, burning, highlight }) {
       </div>
       <div style={{ fontSize: 10.5, color: 'var(--text-muted)', marginBottom: 4 }}>recurrence</div>
       <div style={{ fontSize: 11, fontWeight: 600, color: risk.color }}>{risk.label} risk</div>
-      {burning && <div style={{ fontSize: 10, color: 'var(--sev-critical)', marginTop: 2 }}>🔥 burning</div>}
+      {burning && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3, fontSize: 10, color: 'var(--sev-critical)', marginTop: 2 }}>
+          <IconFlame size={10} /> burning
+        </div>
+      )}
     </div>
   )
 }
@@ -211,7 +216,7 @@ function SourceCitation({ source, type }) {
 
   return (
     <div style={{ marginTop: 4 }}>
-      <div className="section-label">✅ Verified source</div>
+      <div className="section-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><IconCheckCircle size={12} /> Verified source</div>
       <div
         style={{
           background: 'var(--teal-soft)',
