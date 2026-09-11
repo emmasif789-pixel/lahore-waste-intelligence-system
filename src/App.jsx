@@ -149,7 +149,7 @@ export default function App() {
             <span className="btn-label-full"> {opsMode ? 'Ops mode: ON' : 'Citizen view'}</span>
           </button>
           <span className="demo-badge"><span className="dot" /> Live shared database</span>
-          <button id="report-btn" className="btn-primary" onClick={() => { setSelectedHotspot(null); setReportOpen(true) }}>📸 Report waste</button>
+          <button id="report-btn" className="btn-primary" onClick={() => { setSelectedHotspot(null); setReportOpen(true) }}>📸 Report<span className="btn-label-full"> waste</span></button>
         </div>
       </header>
 
