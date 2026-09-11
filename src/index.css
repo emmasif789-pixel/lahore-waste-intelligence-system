@@ -291,13 +291,29 @@ button {
   100% { transform: scale(2.1); opacity: 0; }
 }
 
-/* Map context bar - persistent orientation, not a dismissable modal */
-.map-context-bar {
+/* Map top stack: context bar, KPI strip, and area panel flow in a column
+   instead of using hand-placed pixel offsets. That's the robust fix — fixed
+   top offsets meant a taller context bar (e.g. it wrapping to 2 lines) would
+   overlap the stat strip beneath it. */
+.map-top-stack {
   position: absolute;
   top: 14px;
   left: 14px;
   right: 14px;
-  z-index: 401;
+  z-index: 400;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  pointer-events: none;
+}
+.map-top-stack > * {
+  pointer-events: auto;
+}
+
+/* Map context bar - persistent orientation, not a dismissable modal */
+.map-context-bar {
+  position: static;
   background: rgba(20, 27, 36, 0.94);
   backdrop-filter: blur(12px);
   border: 1px solid var(--panel-border-soft);
@@ -326,16 +342,11 @@ button {
 
 /* Floating stat strip */
 .stat-strip {
-  position: absolute;
-  top: 62px;
-  left: 14px;
-  right: 14px;
-  z-index: 400;
+  position: static;
   display: flex;
   align-items: stretch;
   gap: 12px;
   overflow-x: auto;
-  pointer-events: none;
 }
 
 .stat-strip > * {
@@ -377,21 +388,19 @@ button {
 
 /* Area selector floating panel */
 .area-panel-float {
-  position: absolute;
-  top: 122px;
-  left: 14px;
+  position: static;
   width: 320px;
   max-width: calc(100vw - 28px);
-  z-index: 400;
   background: rgba(20, 27, 36, 0.92);
   backdrop-filter: blur(12px);
   border: 1px solid var(--panel-border-soft);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-panel);
-  max-height: calc(100vh - 250px);
+  max-height: calc(100vh - 260px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  align-self: flex-start;
 }
 
 .panel-header {
@@ -1209,14 +1218,17 @@ table.hs-table tr:hover td {
 
 .density-toggle-btn{
   display:flex;align-items:center;gap:6px;
-  background:var(--panel-2);border:1px solid var(--panel-border);color:var(--text-secondary);
-  padding:8px 14px;border-radius:20px;font-weight:600;font-size:12px;cursor:pointer;
+  background:rgba(63,182,168,0.12);border:1px solid rgba(63,182,168,0.45);color:var(--teal);
+  padding:8px 14px;border-radius:20px;font-weight:700;font-size:12px;cursor:pointer;
   flex-shrink:0;
+  transition: background-color 0.15s, border-color 0.15s, transform 0.15s, box-shadow 0.15s;
 }
-.density-toggle-btn:hover{border-color:var(--teal);color:var(--text-primary)}
+.density-toggle-btn:hover{background:rgba(63,182,168,0.2);border-color:var(--teal);transform:translateY(-1px)}
 .density-toggle-btn.active{
-  background:rgba(63,182,168,0.15);border-color:var(--teal);color:var(--teal);
+  background:var(--teal);border-color:var(--teal);color:#08201c;
+  box-shadow:0 3px 14px rgba(63,182,168,0.4);
 }
+.density-toggle-btn.active:hover{filter:brightness(1.08);transform:none}
 @media (max-width: 768px){
   .density-toggle-btn{font-size:11px;padding:7px 10px}
 }
