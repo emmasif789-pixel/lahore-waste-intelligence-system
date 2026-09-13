@@ -40,10 +40,18 @@ create table if not exists reports (
   location_label text,
   area text,
   photo_url text,
+  location_source text default 'gps' check (location_source in ('gps','manual')),
+  user_location_note text,
+  photo_verified boolean not null default false,
   analysis jsonb, -- structured AI output: categories, severity, recoverable_pct, hazard_indicators, confidence, source
   priority_score numeric(3,1),
   created_at timestamptz not null default now()
 );
+
+-- Upgrade path for a database created from an earlier version of this file.
+alter table reports add column if not exists location_source text default 'gps' check (location_source in ('gps','manual'));
+alter table reports add column if not exists user_location_note text;
+alter table reports add column if not exists photo_verified boolean not null default false;
 
 create index if not exists idx_hotspots_area on hotspots(area);
 create index if not exists idx_hotspots_severity on hotspots(severity);
@@ -74,3 +82,19 @@ create policy "Public read reports" on reports for select using (true);
 
 drop policy if exists "Public insert reports" on reports;
 create policy "Public insert reports" on reports for insert with check (true);
+
+-- Storage bucket for citizen-submitted report photos. Public read so photos
+-- are visible to everyone viewing the map; public insert so the anon
+-- browser client can upload (no login system yet — same permissive
+-- pattern as the tables above, tighten before real production rollout).
+insert into storage.buckets (id, name, public)
+values ('report-photos', 'report-photos', true)
+on conflict (id) do nothing;
+
+drop policy if exists "Public read report photos" on storage.objects;
+create policy "Public read report photos" on storage.objects
+  for select using (bucket_id = 'report-photos');
+
+drop policy if exists "Public upload report photos" on storage.objects;
+create policy "Public upload report photos" on storage.objects
+  for insert with check (bucket_id = 'report-photos');

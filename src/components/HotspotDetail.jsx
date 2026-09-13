@@ -1,7 +1,8 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Gauge from './Gauge'
 import { scoreHotspot, recommendedAction, severityMeta, riskBandFromScore } from '../lib/priorityEngine'
-import { IconX, IconArrowRight, IconCamera, IconCheckCircle, IconMapPin, IconFlame } from './Icons'
+import { loadReportsForHotspot } from '../lib/store'
+import { IconX, IconArrowRight, IconCamera, IconCheckCircle, IconAlertTriangle, IconMapPin, IconFlame } from './Icons'
 
 const TYPE_COLOR = {
   Organic: '#4fae64',
@@ -22,6 +23,22 @@ const STATUS_OPTIONS = [
 ]
 
 export default function HotspotDetail({ hotspot, onClose, opsMode, onStatusChange }) {
+  const [reports, setReports] = useState([])
+  const [reportsLoading, setReportsLoading] = useState(false)
+
+  useEffect(() => {
+    if (!hotspot) return
+    let cancelled = false
+    setReportsLoading(true)
+    loadReportsForHotspot(hotspot.id).then((data) => {
+      if (!cancelled) {
+        setReports(data)
+        setReportsLoading(false)
+      }
+    })
+    return () => { cancelled = true }
+  }, [hotspot?.id])
+
   if (!hotspot) return null
   const { score, breakdown } = scoreHotspot(hotspot)
   const action = recommendedAction(hotspot, score)
@@ -119,6 +136,9 @@ export default function HotspotDetail({ hotspot, onClose, opsMode, onStatusChang
 
           <div className="section-label">Report trend (last {hotspot.trend.length} periods)</div>
           <TrendSparkline trend={hotspot.trend} />
+
+          <div className="section-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><IconCamera size={12} /> Recent citizen reports</div>
+          <RecentReports reports={reports} loading={reportsLoading} />
 
           <div className="section-label">Nearby sensitive facilities</div>
           {hotspot.nearby.length === 0 ? (
@@ -242,6 +262,35 @@ function SourceCitation({ source, type }) {
           )}
         </div>
       </div>
+    </div>
+  )
+}
+
+function RecentReports({ reports, loading }) {
+  if (loading) {
+    return <div className="empty-note">Loading citizen reports…</div>
+  }
+  if (reports.length === 0) {
+    return <div className="empty-note">No citizen reports with photos yet for this site — submit one to add the first.</div>
+  }
+  return (
+    <div className="recent-reports-grid">
+      {reports.map((r) => (
+        <div className="recent-report-card" key={r.id}>
+          {r.photoUrl ? (
+            <img src={r.photoUrl} alt="Citizen report" className="recent-report-photo" loading="lazy" />
+          ) : (
+            <div className="recent-report-photo recent-report-photo-empty">No photo</div>
+          )}
+          <div className="recent-report-meta">
+            <span className={`photo-verified-tag inline ${r.photoVerified ? 'verified' : 'unverified'}`}>
+              {r.photoVerified ? <><IconCheckCircle size={10} /> Verified</> : <><IconAlertTriangle size={10} /> Unverified</>}
+            </span>
+            <span style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>{new Date(r.createdAt).toLocaleDateString()}</span>
+          </div>
+          {r.userLocationNote && <div className="recent-report-note">{r.userLocationNote}</div>}
+        </div>
+      ))}
     </div>
   )
 }

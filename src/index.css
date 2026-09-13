@@ -944,6 +944,184 @@ table.hs-table tr:hover td {
   gap: 10px;
 }
 
+.location-source-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 12px;
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+}
+.location-source-tag.gps {
+  background: var(--teal-soft);
+  color: var(--teal);
+  border: 1px solid rgba(63, 182, 168, 0.35);
+}
+.location-source-tag.manual {
+  background: rgba(224, 185, 60, 0.14);
+  color: var(--sev-moderate);
+  border: 1px solid rgba(224, 185, 60, 0.35);
+}
+
+.location-denied-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  background: rgba(228, 72, 58, 0.1);
+  border: 1px solid rgba(228, 72, 58, 0.35);
+  color: var(--sev-critical);
+  border-radius: var(--radius-md);
+  padding: 11px 13px;
+  font-size: 12.5px;
+  margin-bottom: 12px;
+}
+.location-denied-note svg { flex-shrink: 0; margin-top: 1px; }
+
+.text-input {
+  width: 100%;
+  background: var(--panel-2);
+  border: 1px solid var(--panel-border);
+  color: var(--text-primary);
+  padding: 9px 11px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+}
+.text-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.photo-verified-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 12px;
+  letter-spacing: 0.03em;
+  margin-top: 10px;
+}
+.photo-verified-tag.inline { margin-top: 0; }
+.photo-verified-tag.verified {
+  background: var(--teal-soft);
+  color: var(--teal);
+  border: 1px solid rgba(63, 182, 168, 0.35);
+}
+.photo-verified-tag.unverified {
+  background: rgba(224, 185, 60, 0.14);
+  color: var(--sev-moderate);
+  border: 1px solid rgba(224, 185, 60, 0.35);
+}
+
+.camera-live-wrap {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: #000;
+  border: 1px solid var(--panel-border);
+}
+.camera-live-video {
+  width: 100%;
+  max-height: 320px;
+  display: block;
+  object-fit: cover;
+}
+.camera-live-actions {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: linear-gradient(transparent, rgba(0,0,0,0.65));
+}
+.camera-shutter-btn {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid rgba(255,255,255,0.5);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.camera-shutter-btn:active { transform: scale(0.92); }
+
+.photo-guidelines {
+  background: var(--panel);
+  border: 1px solid var(--panel-border-soft);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  margin-top: 14px;
+}
+.photo-guidelines-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+.photo-guidelines ul {
+  margin: 0;
+  padding-left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.photo-guidelines li {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.recent-reports-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+.recent-report-card {
+  background: var(--panel);
+  border: 1px solid var(--panel-border-soft);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.recent-report-photo {
+  width: 100%;
+  height: 90px;
+  object-fit: cover;
+  display: block;
+  background: var(--panel-2);
+}
+.recent-report-photo-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+.recent-report-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 6px 8px;
+}
+.recent-report-note {
+  font-size: 10.5px;
+  color: var(--text-secondary);
+  padding: 0 8px 8px;
+  line-height: 1.4;
+}
+
 .field-label {
   font-size: 11.5px;
   color: var(--text-muted);

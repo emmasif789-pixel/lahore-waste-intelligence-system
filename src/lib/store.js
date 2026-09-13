@@ -170,7 +170,28 @@ export function applyReportToHotspots(hotspots, report, nearestHotspotId) {
 
 // --- reports ---
 
+// Uploads a captured report photo to the public report-photos bucket and
+// returns its public URL, or null if there's no photo blob or the upload
+// fails (upload failure shouldn't block the report itself from saving).
+async function uploadReportPhoto(reportId, photoBlob) {
+  if (!photoBlob) return null
+  try {
+    const path = `${reportId}.jpg`
+    const { error } = await supabase.storage.from('report-photos').upload(path, photoBlob, {
+      contentType: 'image/jpeg',
+      upsert: true,
+    })
+    if (error) throw error
+    const { data } = supabase.storage.from('report-photos').getPublicUrl(path)
+    return data?.publicUrl || null
+  } catch (err) {
+    console.error('Supabase photo upload failed:', err)
+    return null
+  }
+}
+
 export async function saveReport(report) {
+  const photoUrl = await uploadReportPhoto(report.id, report.photoBlob)
   try {
     const { error } = await supabase.from('reports').insert({
       id: report.id,
@@ -179,6 +200,10 @@ export async function saveReport(report) {
       lng: report.lng,
       location_label: report.locationLabel,
       area: report.area,
+      photo_url: photoUrl,
+      location_source: report.locationSource || 'gps',
+      user_location_note: report.userLocationNote || null,
+      photo_verified: !!report.photoVerified,
       analysis: report.analysis,
       priority_score: report.priorityScore ?? null,
       created_at: report.timestamp,
@@ -191,9 +216,38 @@ export async function saveReport(report) {
   try {
     const raw = localStorage.getItem(REPORTS_LOCAL_KEY)
     const list = raw ? JSON.parse(raw) : []
-    list.unshift(report)
+    list.unshift({ ...report, photoBlob: undefined, photoUrl })
     localStorage.setItem(REPORTS_LOCAL_KEY, JSON.stringify(list.slice(0, 50)))
   } catch {}
+}
+
+// Fetches the citizen reports submitted for a given hotspot, most recent
+// first, so their photos and verification status are visible to everyone
+// viewing the site — not just baked into the aggregate hotspot stats.
+export async function loadReportsForHotspot(hotspotId) {
+  if (!hotspotId) return []
+  try {
+    const { data, error } = await supabase
+      .from('reports')
+      .select('*')
+      .eq('hotspot_id', hotspotId)
+      .order('created_at', { ascending: false })
+      .limit(20)
+    if (error) throw error
+    return (data || []).map((row) => ({
+      id: row.id,
+      photoUrl: row.photo_url,
+      locationLabel: row.location_label,
+      locationSource: row.location_source,
+      userLocationNote: row.user_location_note,
+      photoVerified: row.photo_verified,
+      analysis: row.analysis,
+      createdAt: row.created_at,
+    }))
+  } catch (err) {
+    console.error('Supabase report load failed:', err)
+    return []
+  }
 }
 
 export async function resetDemoData() {
