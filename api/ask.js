@@ -1,17 +1,20 @@
 // Vercel serverless function backing "Ask a question" in City Intelligence.
 // Takes a free-text question plus a compact summary of the current
 // hotspot data (built client-side, not fetched here) and asks Groq's text
-// model to answer using only that data. Same multi-key failover as
-// api/analyze.js. Returns 501 if no key is configured so the client can
-// show an honest "AI question answering isn't available" state instead of
-// pretending to answer.
+// model to answer using only that data. Returns 501 if no key is
+// configured so the client can show an honest "AI question answering
+// isn't available" state instead of pretending to answer.
 //
-// Model: openai/gpt-oss-120b — Groq's current recommended replacement for
-// the now-deprecated llama-3.3-70b-versatile (console.groq.com/docs/deprecations).
+// Models: tries TEXT_MODELS in order, moving on automatically if Groq
+// reports a model as decommissioned — see the matching comment in
+// api/analyze.js for why, and update this list from
+// console.groq.com/docs/deprecations if all of them ever die at once.
 
-import { getGroqKeys, isKeyLevelFailure } from './_groqKeys.js'
+import { getGroqKeys, isKeyLevelFailure, isModelDeadError } from './_groqKeys.js'
 
 export const config = { runtime: 'nodejs' }
+
+const TEXT_MODELS = ['openai/gpt-oss-120b', 'qwen/qwen3.6-27b']
 
 const SYSTEM_PROMPT = `You are the City Intelligence assistant for the Lahore Waste Intelligence System, a municipal waste-hotspot tracking tool. You will be given a compact data summary of the current tracked hotspots and asked a question by a city operations user.
 
@@ -21,7 +24,7 @@ Rules:
 - Keep answers short and operational — 2-4 sentences, like a briefing to a city ops lead, not an essay.
 - No markdown formatting, no headers, plain sentences.`
 
-async function callGroq(apiKey, question, context) {
+async function callGroq(apiKey, model, question, context) {
   return fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -29,7 +32,7 @@ async function callGroq(apiKey, question, context) {
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'openai/gpt-oss-120b',
+      model,
       max_tokens: 400,
       temperature: 0.2,
       messages: [
@@ -59,35 +62,40 @@ export default async function handler(req, res) {
   }
 
   let lastError = null
-  for (let i = 0; i < keys.length; i++) {
-    const { name, value } = keys[i]
-    try {
-      const response = await callGroq(value, question.trim(), context || 'No data available.')
+  for (const model of TEXT_MODELS) {
+    for (const { name, value } of keys) {
+      try {
+        const response = await callGroq(value, model, question.trim(), context || 'No data available.')
 
-      if (!response.ok) {
-        const errText = await response.text()
-        lastError = { key: name, status: response.status, detail: errText }
-        if (isKeyLevelFailure(response.status) && i < keys.length - 1) continue
-        res.status(502).json({ error: 'Question answering failed', detail: errText })
+        if (!response.ok) {
+          const errText = await response.text()
+          lastError = { key: name, model, status: response.status, detail: errText }
+
+          if (isModelDeadError(errText)) {
+            break // this model is gone — try the next model instead of every remaining key
+          }
+          if (isKeyLevelFailure(response.status)) {
+            continue // try the next key with this same model
+          }
+          res.status(502).json({ error: 'Question answering failed', detail: errText })
+          return
+        }
+
+        const data = await response.json()
+        const answer = data.choices?.[0]?.message?.content?.trim()
+        if (!answer) {
+          res.status(502).json({ error: 'No text in model response' })
+          return
+        }
+
+        res.status(200).json({ answer, source: 'model' })
         return
+      } catch (err) {
+        lastError = { key: name, model, detail: String(err) }
+        continue
       }
-
-      const data = await response.json()
-      const answer = data.choices?.[0]?.message?.content?.trim()
-      if (!answer) {
-        res.status(502).json({ error: 'No text in model response' })
-        return
-      }
-
-      res.status(200).json({ answer, source: 'model' })
-      return
-    } catch (err) {
-      lastError = { key: name, detail: String(err) }
-      if (i < keys.length - 1) continue
-      res.status(500).json({ error: 'Question answering failed', detail: String(err) })
-      return
     }
   }
 
-  res.status(502).json({ error: 'All Groq keys failed', detail: lastError })
+  res.status(502).json({ error: 'All Groq models/keys failed', detail: lastError })
 }

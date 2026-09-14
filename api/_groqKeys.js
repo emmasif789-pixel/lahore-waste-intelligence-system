@@ -16,3 +16,17 @@ export function getGroqKeys() {
 export function isKeyLevelFailure(status) {
   return status === 401 || status === 403 || status === 429
 }
+
+// Groq returns a specific error code when a model ID has been deprecated
+// and shut down — distinct from a key problem. When this happens, retrying
+// with a different key is pointless (every key will hit the same dead
+// model); the caller should move to the next model in its fallback list
+// instead. See console.groq.com/docs/deprecations.
+export function isModelDeadError(errText) {
+  try {
+    const code = JSON.parse(errText)?.error?.code
+    return code === 'model_decommissioned' || code === 'model_not_found'
+  } catch {
+    return false
+  }
+}
