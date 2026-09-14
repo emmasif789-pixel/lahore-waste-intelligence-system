@@ -1470,6 +1470,13 @@ table.hs-table tr:hover td {
   border-radius:8px;padding:10px 12px;font-size:12px;color:var(--text-secondary);
   line-height:1.5;margin-top:6px;margin-bottom:10px;
 }
+.intel-ask-box{
+  display:flex;gap:8px;margin-bottom:10px;
+}
+.intel-ask-box .text-input{flex:1}
+.intel-answer-box.intel-answer-ai{
+  background:var(--teal-soft);border-color:rgba(63,182,168,0.35);
+}
 
 /* Loading screen */
 .loading-mark{

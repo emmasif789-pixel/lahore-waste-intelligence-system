@@ -1,11 +1,15 @@
 import React, { useMemo, useState } from 'react'
 import { scoreHotspot, recommendedAction, severityMeta } from '../lib/priorityEngine'
 import { describeUnderMonitoredAreas } from '../lib/densityInsight'
+import { askIntelQuestion } from '../lib/askIntel'
+import { IconCheckCircle, IconAlertTriangle } from './Icons'
 
-// Every insight here is computed directly from the live hotspot dataset —
-// there is no separate AI call or fabricated narrative. This panel exists to
-// surface the same intelligence the map/dashboard already contain, framed as
-// direct answers to the questions a city operations lead actually asks.
+// The preset questions below are computed directly from the live hotspot
+// dataset — no AI call, no fabricated narrative. The free-text box at the
+// top of "Ask a question" is different: it sends a compact summary of this
+// same data to a real Groq text model (/api/ask) so people can ask
+// something not on the preset list. It's labeled as AI-generated in the UI
+// so the two are never confused with each other.
 export default function CityIntelligence({ hotspots, selectedHotspot, onClose, onSelectHotspot }) {
   const scored = useMemo(
     () => hotspots.map((h) => ({ ...h, priority: scoreHotspot(h).score })).sort((a, b) => b.priority - a.priority),
@@ -154,6 +158,10 @@ function explainCriticality(h) {
 // during a live demo.
 function RecommendedQA({ hotspots, scored, areas }) {
   const [openId, setOpenId] = useState(null)
+  const [customQ, setCustomQ] = useState('')
+  const [asking, setAsking] = useState(false)
+  const [customAnswer, setCustomAnswer] = useState(null)
+  const [customErr, setCustomErr] = useState(null)
 
   const areaRisk = useMemo(() => {
     const byArea = {}
@@ -168,6 +176,33 @@ function RecommendedQA({ hotspots, scored, areas }) {
     }
     return worst
   }, [hotspots])
+
+  // A compact, factual summary of the current data — this is exactly what
+  // gets sent to the model, and nothing else, so answers stay grounded in
+  // what's actually tracked instead of the model inventing specifics.
+  function buildDataContext() {
+    const top = scored.slice(0, 12)
+    const lines = top.map((h) =>
+      `- ${h.name} (${h.area}): priority ${h.priority.toFixed(1)}/10, severity ${h.severity}, recurrence ${h.recurrence}%, recyclable ${h.recyclablePct}%, burning: ${h.burning ? 'yes' : 'no'}, status: ${h.status || 'active'}`
+    )
+    const areaLine = areaRisk ? `Highest-risk area: ${areaRisk.area}, avg priority ${areaRisk.avg.toFixed(1)}/10 across ${areaRisk.count} sites.` : ''
+    return `Total tracked hotspots: ${hotspots.length}.\n${areaLine}\nTop sites by priority:\n${lines.join('\n')}`
+  }
+
+  async function handleAsk() {
+    const q = customQ.trim()
+    if (!q || asking) return
+    setAsking(true)
+    setCustomAnswer(null)
+    setCustomErr(null)
+    const result = await askIntelQuestion(q, buildDataContext())
+    setAsking(false)
+    if (result.ok) {
+      setCustomAnswer(result.answer)
+    } else {
+      setCustomErr('Could not reach the AI model right now — try again, or use one of the questions below.')
+    }
+  }
 
   const questions = [
     {
@@ -214,6 +249,37 @@ function RecommendedQA({ hotspots, scored, areas }) {
 
   return (
     <div>
+      <div className="intel-ask-box">
+        <input
+          type="text"
+          className="text-input"
+          placeholder="Ask anything about the current sites…"
+          value={customQ}
+          onChange={(e) => setCustomQ(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleAsk()}
+          disabled={asking}
+        />
+        <button className="btn-primary" onClick={handleAsk} disabled={asking || !customQ.trim()}>
+          {asking ? 'Asking…' : 'Ask'}
+        </button>
+      </div>
+
+      {customErr && (
+        <div className="location-denied-note" style={{ marginBottom: 10 }}>
+          <IconAlertTriangle size={14} />
+          <div style={{ fontSize: 12 }}>{customErr}</div>
+        </div>
+      )}
+
+      {customAnswer && (
+        <div className="intel-answer-box intel-answer-ai">
+          <div className="photo-verified-tag inline verified" style={{ marginBottom: 6 }}>
+            <IconCheckCircle size={10} /> AI-generated from current site data
+          </div>
+          <div>{customAnswer}</div>
+        </div>
+      )}
+
       {questions.map((item) => (
         <div key={item.id}>
           <button className="intel-question-btn" onClick={() => setOpenId(openId === item.id ? null : item.id)}>

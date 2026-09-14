@@ -1,7 +1,7 @@
 import { heuristicAnalyze } from './heuristicAI'
 
 // Tries the real server-side vision model first (/api/analyze, which uses
-// Groq's vision-capable Llama model with whichever GROQ_*KEY* env vars are
+// Groq's vision-capable model with whichever GROQ_*KEY* env vars are
 // set on the Vercel project, failing over between them on rate limits).
 // If that's not configured or the request fails, falls back to the in-browser
 // heuristic so the demo is never dead in the water without a key.

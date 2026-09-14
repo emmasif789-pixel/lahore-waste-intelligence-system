@@ -1,9 +1,14 @@
-// Vercel serverless function. Calls Groq's vision-capable Llama model to
+// Vercel serverless function. Calls Groq's vision-capable Qwen model to
 // classify an uploaded waste photo into structured JSON. Requires at least
 // one GROQ_*KEY* environment variable set on the Vercel project. If none of
 // them work, returns 501 so the client falls back to the in-browser
 // heuristic model — the app works either way, but this path is the "real"
 // one for the demo.
+//
+// Model: qwen/qwen3.6-27b — Groq's vision model as of the current
+// deprecation schedule (console.groq.com/docs/deprecations). Groq rotates
+// model availability; if this starts returning model-not-found errors,
+// check that page for the current recommended vision model.
 //
 // Multiple keys: if you're hitting Groq's free-tier rate limit during a
 // demo, add more than one key on Vercel. Every env var whose name contains
@@ -12,6 +17,8 @@
 // balancing — Vercel functions are stateless per request, so there's no
 // way to track "which key is under less load" without external infra
 // (e.g. Redis), which isn't worth building for this.
+
+import { getGroqKeys, isKeyLevelFailure } from './_groqKeys.js'
 
 export const config = { runtime: 'nodejs' }
 
@@ -29,16 +36,6 @@ const SYSTEM_PROMPT = `You are a waste-composition vision analyst for a municipa
 
 Category percentages should sum to approximately 100. Be conservative and evidence-based — only note hazard indicators (e.g. burning, medical waste, chemical containers) you can actually see signs of. This is an estimate from a photo, not a lab analysis. Respond with ONLY the JSON object, nothing else.`
 
-// Collect every env var that looks like a Groq key, in a stable order, so
-// adding GROQ_API_KEY_3 etc. later just works without a code change.
-function getGroqKeys() {
-  return Object.keys(process.env)
-    .filter((k) => k.toUpperCase().includes('GROQ') && k.toUpperCase().includes('KEY'))
-    .sort()
-    .map((k) => ({ name: k, value: process.env[k] }))
-    .filter((k) => k.value)
-}
-
 async function callGroq(apiKey, image, mediaType) {
   const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
@@ -47,7 +44,7 @@ async function callGroq(apiKey, image, mediaType) {
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+      model: 'qwen/qwen3.6-27b',
       max_tokens: 1000,
       response_format: { type: 'json_object' },
       messages: [
@@ -63,12 +60,6 @@ async function callGroq(apiKey, image, mediaType) {
     }),
   })
   return response
-}
-
-// True if this status means "this key is spent/broken, try the next one"
-// rather than "the request itself is bad" (which would fail on every key).
-function isKeyLevelFailure(status) {
-  return status === 401 || status === 403 || status === 429
 }
 
 export default async function handler(req, res) {
