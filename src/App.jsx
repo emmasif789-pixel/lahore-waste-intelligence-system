@@ -27,6 +27,7 @@ export default function App() {
   const [tourOpen, setTourOpen] = useState(false)
   const [intelOpen, setIntelOpen] = useState(false)
   const [intelSeen, setIntelSeen] = useState(true)
+  const [pulseActive, setPulseActive] = useState(false)
   const [showDensityLayer, setShowDensityLayer] = useState(false)
 
   useEffect(() => {
@@ -42,7 +43,16 @@ export default function App() {
 
   useEffect(() => {
     try {
-      setIntelSeen(!!localStorage.getItem(INTEL_SEEN_KEY))
+      const seen = !!localStorage.getItem(INTEL_SEEN_KEY)
+      setIntelSeen(seen)
+      if (!seen) {
+        // Draw attention to City Intelligence briefly for first-time
+        // visitors, then stop — pulsing indefinitely just becomes
+        // distracting for anyone who hasn't clicked it yet.
+        setPulseActive(true)
+        const t = setTimeout(() => setPulseActive(false), 9000)
+        return () => clearTimeout(t)
+      }
     } catch {}
   }, [])
 
@@ -53,6 +63,7 @@ export default function App() {
   function openIntel() {
     setIntelOpen(true)
     setIntelSeen(true)
+    setPulseActive(false)
     try { localStorage.setItem(INTEL_SEEN_KEY, '1') } catch {}
   }
 
@@ -184,6 +195,7 @@ export default function App() {
               center={areaFlyCenter}
               zoom={areaFlyCenter ? 14 : 12}
               flyToOnCenterChange
+              fitAllOnLoad={!areaFlyCenter}
               showDensityLayer={showDensityLayer}
               allHotspotsForDensity={hotspots}
             />
@@ -201,7 +213,7 @@ export default function App() {
                 </button>
                 <button
                   id="intel-fab"
-                  className={`intel-cta-btn ${!intelSeen ? 'pulse-attention' : ''}`}
+                  className={`intel-cta-btn ${pulseActive ? 'pulse-attention' : ''}`}
                   onClick={openIntel}
                   style={{ marginLeft: 'auto' }}
                 >

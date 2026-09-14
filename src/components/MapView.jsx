@@ -58,6 +58,23 @@ function FlyToCenter({ center, zoom }) {
   return null
 }
 
+// Frames every hotspot on the initial map load so the full city picture —
+// every severity color — is visible right away, instead of a fixed
+// center/zoom that might crop some markers out of view. Runs once on
+// mount only; area/hotspot selection afterwards uses FlyToCenter instead.
+function FitAllOnMount({ hotspots }) {
+  const map = useMap()
+  React.useEffect(() => {
+    if (!hotspots || hotspots.length === 0) return
+    const bounds = L.latLngBounds(hotspots.map((h) => [h.lat, h.lng]))
+    if (bounds.isValid()) {
+      map.fitBounds(bounds, { padding: [48, 48], maxZoom: 13 })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  return null
+}
+
 function PanControls() {
   const map = useMap()
   const pan = (dx, dy) => map.panBy([dx, dy], { animate: true, duration: 0.35 })
@@ -86,6 +103,7 @@ export default function MapView({
   flyToOnCenterChange = false,
   showDensityLayer = false,
   allHotspotsForDensity,
+  fitAllOnLoad = false,
 }) {
   const icons = useMemo(() => {
     const map = {}
@@ -166,6 +184,7 @@ export default function MapView({
       {pickMode && <ClickCatcher onPick={onPick} />}
       {pickedPoint && <Marker position={[pickedPoint.lat, pickedPoint.lng]} icon={pickIcon} />}
       {flyToOnCenterChange && <FlyToCenter center={center} zoom={zoom} />}
+      {fitAllOnLoad && <FitAllOnMount hotspots={hotspots} />}
     </MapContainer>
   )
 }

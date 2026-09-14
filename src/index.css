@@ -1448,7 +1448,7 @@ table.hs-table tr:hover td {
 }
 @keyframes intelPulseAttn{
   0%,100%{box-shadow:0 2px 12px rgba(207,154,62,0.4)}
-  50%{box-shadow:0 2px 24px rgba(207,154,62,0.85)}
+  50%{box-shadow:0 2px 18px rgba(207,154,62,0.65)}
 }
 
 .guide-relaunch-btn{
