@@ -387,6 +387,10 @@ button {
 }
 
 /* Area selector floating panel */
+.area-toggle-mobile {
+  display: none;
+}
+
 .area-panel-float {
   position: static;
   width: 320px;
@@ -1293,6 +1297,38 @@ table.hs-table tr:hover td {
   .stat-chip { min-width: 0; padding: 8px 10px; }
   .stat-chip .stat-value { font-size: 16px; }
 
+  /* Area Intelligence starts collapsed on mobile — otherwise the context
+     bar + KPI strip + this panel together push the actual map off-screen
+     before anyone sees it. The toggle bar is always visible; the panel
+     itself only renders when opened. */
+  .area-toggle-mobile {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    width: 100%;
+    background: rgba(20, 27, 36, 0.94);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--panel-border-soft);
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+    color: var(--text-secondary);
+    font-size: 12.5px;
+    font-weight: 600;
+    box-shadow: var(--shadow-panel);
+  }
+  .area-toggle-mobile svg:last-child {
+    margin-left: auto;
+    transition: transform 0.15s;
+  }
+  .area-toggle-mobile svg.flip {
+    transform: rotate(180deg);
+  }
+  .area-panel-wrap {
+    display: none;
+  }
+  .area-panel-wrap.open {
+    display: block;
+  }
   .area-panel-float {
     position: static;
     width: 100%;
@@ -1412,10 +1448,6 @@ table.hs-table tr:hover td {
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
   z-index: 991;
   animation: modalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@media (max-width: 520px) {
-  .tour-card { width: calc(100vw - 32px) !important; left: 16px !important; }
 }
 
 /* City Intelligence prominence */

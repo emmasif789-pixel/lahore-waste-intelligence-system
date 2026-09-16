@@ -8,7 +8,7 @@ import Welcome from './components/Welcome'
 import LoadingScreen from './components/LoadingScreen'
 import GuidedTour from './components/GuidedTour'
 import CityIntelligence from './components/CityIntelligence'
-import { IconMap, IconGlobe } from './components/Icons'
+import { IconMap, IconGlobe, IconMapPin, IconChevronDown } from './components/Icons'
 import { loadHotspots, upsertHotspot, saveReport, applyReportToHotspots, updateHotspotStatus } from './lib/store'
 import { buildAreaIndex, summarizeArea } from './lib/areaEngine'
 import { severityMeta } from './lib/priorityEngine'
@@ -29,6 +29,7 @@ export default function App() {
   const [intelSeen, setIntelSeen] = useState(true)
   const [pulseActive, setPulseActive] = useState(false)
   const [showDensityLayer, setShowDensityLayer] = useState(false)
+  const [areaPanelOpen, setAreaPanelOpen] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -228,13 +229,20 @@ export default function App() {
                 <StatChip label="Burning / hazard" value={cityStats.burning} color="var(--sev-critical)" />
               </div>
 
-              <AreaPanel
-                areaNames={areaNames}
-                selectedArea={selectedArea}
-                onSelectArea={setSelectedArea}
-                summary={areaSummary}
-                onSelectHotspot={setSelectedHotspot}
-              />
+              <button className="area-toggle-mobile" onClick={() => setAreaPanelOpen((v) => !v)}>
+                <IconMapPin size={13} /> Area Intelligence — {selectedArea || 'All areas (city-wide)'}
+                <IconChevronDown size={13} className={areaPanelOpen ? 'flip' : ''} />
+              </button>
+
+              <div className={`area-panel-wrap ${areaPanelOpen ? 'open' : ''}`}>
+                <AreaPanel
+                  areaNames={areaNames}
+                  selectedArea={selectedArea}
+                  onSelectArea={setSelectedArea}
+                  summary={areaSummary}
+                  onSelectHotspot={setSelectedHotspot}
+                />
+              </div>
             </div>
 
             <div className="legend-float">

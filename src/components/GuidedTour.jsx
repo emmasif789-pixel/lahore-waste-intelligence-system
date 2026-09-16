@@ -52,7 +52,14 @@ export default function GuidedTour({ onFinish }) {
       setRect(null)
       return
     }
-    const el = document.querySelector(current.target)
+    let el = document.querySelector(current.target)
+    // On mobile the Area Intelligence panel starts collapsed (see
+    // .area-toggle-mobile), so it has no visible size to highlight —
+    // point the ring at the toggle bar instead, since that's what's
+    // actually on screen for that step.
+    if (current.target === '.area-panel-float' && (!el || el.getBoundingClientRect().width === 0)) {
+      el = document.querySelector('.area-toggle-mobile') || el
+    }
     setRect(el ? el.getBoundingClientRect() : null)
   }, [current.target])
 
@@ -125,19 +132,25 @@ export default function GuidedTour({ onFinish }) {
 }
 
 function getCardPosition(rect) {
-  const cardWidth = 340
+  const viewportW = window.innerWidth
+  const viewportH = window.innerHeight
   const margin = 16
+  // Cap the card to the viewport width on narrow screens instead of a
+  // fixed 340px — that's what was pushing it off-screen on phones.
+  const cardWidth = Math.min(340, viewportW - margin * 2)
+
   if (!rect) {
+    // Centered step: compute plain pixel coordinates instead of
+    // left:50%/transform:translate(-50%) — a transform left over from
+    // this branch is what conflicted with the old mobile CSS override
+    // that forced `left` without touching `transform`.
+    const estCardHeight = 260
     return {
-      top: '50%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
+      top: Math.max(margin, (viewportH - estCardHeight) / 2),
+      left: Math.max(margin, (viewportW - cardWidth) / 2),
       width: cardWidth,
     }
   }
-
-  const viewportW = window.innerWidth
-  const viewportH = window.innerHeight
 
   let top = rect.bottom + margin
   if (top + 220 > viewportH) top = Math.max(margin, rect.top - 220 - margin)
