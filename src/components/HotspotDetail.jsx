@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import Gauge from './Gauge'
 import { scoreHotspot, recommendedAction, severityMeta, riskBandFromScore } from '../lib/priorityEngine'
 import { loadReportsForHotspot } from '../lib/store'
-import { IconX, IconArrowRight, IconCamera, IconCheckCircle, IconAlertTriangle, IconMapPin, IconFlame } from './Icons'
+import { IconX, IconArrowRight, IconCamera, IconCheckCircle, IconAlertTriangle, IconMapPin, IconFlame, IconMaximize } from './Icons'
 
 const TYPE_COLOR = {
   Organic: '#4fae64',
@@ -267,6 +267,8 @@ function SourceCitation({ source, type }) {
 }
 
 function RecentReports({ reports, loading }) {
+  const [openReport, setOpenReport] = useState(null)
+
   if (loading) {
     return <div className="empty-note">Loading citizen reports…</div>
   }
@@ -274,24 +276,51 @@ function RecentReports({ reports, loading }) {
     return <div className="empty-note">No citizen reports with photos yet for this site — submit one to add the first.</div>
   }
   return (
-    <div className="recent-reports-grid">
-      {reports.map((r) => (
-        <div className="recent-report-card" key={r.id}>
-          {r.photoUrl ? (
-            <img src={r.photoUrl} alt="Citizen report" className="recent-report-photo" loading="lazy" />
-          ) : (
-            <div className="recent-report-photo recent-report-photo-empty">No photo</div>
-          )}
-          <div className="recent-report-meta">
-            <span className={`photo-verified-tag inline ${r.photoVerified ? 'verified' : 'unverified'}`}>
-              {r.photoVerified ? <><IconCheckCircle size={10} /> Verified</> : <><IconAlertTriangle size={10} /> Unverified</>}
-            </span>
-            <span style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>{new Date(r.createdAt).toLocaleDateString()}</span>
+    <>
+      <div className="recent-reports-grid">
+        {reports.map((r) => (
+          <div className="recent-report-card" key={r.id}>
+            {r.photoUrl ? (
+              <button className="recent-report-photo-btn" onClick={() => setOpenReport(r)} aria-label="View full photo and verification details">
+                <img src={r.photoUrl} alt="Citizen report" className="recent-report-photo" loading="lazy" />
+                <span className="recent-report-expand-hint"><IconMaximize size={13} /></span>
+              </button>
+            ) : (
+              <div className="recent-report-photo recent-report-photo-empty">No photo</div>
+            )}
+            <div className="recent-report-meta">
+              <span className={`photo-verified-tag inline ${r.photoVerified ? 'verified' : 'unverified'}`}>
+                {r.photoVerified ? <><IconCheckCircle size={10} /> Verified</> : <><IconAlertTriangle size={10} /> Unverified</>}
+              </span>
+              <span style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>{new Date(r.createdAt).toLocaleDateString()}</span>
+            </div>
+            {r.userLocationNote && <div className="recent-report-note">{r.userLocationNote}</div>}
           </div>
-          {r.userLocationNote && <div className="recent-report-note">{r.userLocationNote}</div>}
+        ))}
+      </div>
+
+      {openReport && (
+        <div className="report-lightbox-backdrop" onClick={() => setOpenReport(null)}>
+          <div className="report-lightbox" onClick={(e) => e.stopPropagation()}>
+            <button className="icon-btn report-lightbox-close" onClick={() => setOpenReport(null)} aria-label="Close"><IconX size={15} /></button>
+            {openReport.photoUrl && <img src={openReport.photoUrl} alt="Citizen report, full size" className="report-lightbox-photo" />}
+            <div className="report-lightbox-details">
+              <div className={`photo-verified-tag inline ${openReport.photoVerified ? 'verified' : 'unverified'}`} style={{ marginBottom: 10 }}>
+                {openReport.photoVerified
+                  ? <><IconCheckCircle size={11} /> Live camera capture — verified</>
+                  : <><IconAlertTriangle size={11} /> Uploaded from gallery — unverified</>}
+              </div>
+              <div className="report-lightbox-row"><span>Captured</span><span>{new Date(openReport.createdAt).toLocaleString()}</span></div>
+              {typeof openReport.lat === 'number' && (
+                <div className="report-lightbox-row"><span>Coordinates</span><span className="mono">{openReport.lat.toFixed(5)}, {openReport.lng.toFixed(5)}</span></div>
+              )}
+              <div className="report-lightbox-row"><span>Location source</span><span>{openReport.locationSource === 'gps' ? 'GPS' : 'Manually placed'}</span></div>
+              <div className="report-lightbox-hint">The timestamp and coordinates above are also burned directly into the photo — visible in the bottom strip of the image — so the evidence travels with the file itself, not just this page.</div>
+            </div>
+          </div>
         </div>
-      ))}
-    </div>
+      )}
+    </>
   )
 }
 

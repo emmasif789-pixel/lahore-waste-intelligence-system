@@ -243,6 +243,8 @@ export async function loadReportsForHotspot(hotspotId) {
       photoVerified: row.photo_verified,
       analysis: row.analysis,
       createdAt: row.created_at,
+      lat: row.lat,
+      lng: row.lng,
     }))
   } catch (err) {
     console.error('Supabase report load failed:', err)

@@ -75,13 +75,55 @@ drop policy if exists "Public update hotspots" on hotspots;
 create policy "Public update hotspots" on hotspots for update using (true);
 
 drop policy if exists "Public delete hotspots" on hotspots;
-create policy "Public delete hotspots" on hotspots for delete using (true);
+create policy "Public delete hotspots" on hotspots
+  for delete using (id ~ '^LHR-0[0-9]{2}$');
+-- Scoped, not "using (true)": the app only ever needs to delete its own
+-- known seed rows as part of the auto-resync logic in loadHotspots() —
+-- never a citizen-submitted row, whose id is a 13-digit timestamp and can
+-- never match this pattern. An open delete policy here would let anyone
+-- with the (necessarily public) anon key wipe the live dataset.
 
 drop policy if exists "Public read reports" on reports;
 create policy "Public read reports" on reports for select using (true);
 
 drop policy if exists "Public insert reports" on reports;
 create policy "Public insert reports" on reports for insert with check (true);
+
+-- Insert-rate throttle on both tables: blocks a scripted flood from
+-- dumping fake data into the live public demo, without needing a full
+-- auth system. Generous threshold (30 inserts/60s per table) — well
+-- above real simultaneous multi-person testing, well below a bot script.
+create or replace function reject_if_insert_burst()
+returns trigger
+language plpgsql
+as $$
+declare
+  recent_count integer;
+  ts_col text := tg_argv[0];
+  max_per_window integer := tg_argv[1]::integer;
+begin
+  execute format(
+    'select count(*) from %I where %I > now() - interval ''60 seconds''',
+    tg_table_name, ts_col
+  ) into recent_count;
+
+  if recent_count >= max_per_window then
+    raise exception 'Rate limit: too many % inserted in the last 60 seconds', tg_table_name;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_hotspots_rate_limit on hotspots;
+create trigger trg_hotspots_rate_limit
+  before insert on hotspots
+  for each row execute function reject_if_insert_burst('created_at', 30);
+
+drop trigger if exists trg_reports_rate_limit on reports;
+create trigger trg_reports_rate_limit
+  before insert on reports
+  for each row execute function reject_if_insert_burst('created_at', 30);
 
 -- Storage bucket for citizen-submitted report photos. Public read so photos
 -- are visible to everyone viewing the map; public insert so the anon

@@ -143,3 +143,12 @@ export const IconClipboardList = (p) => (
     <line x1="9" y1="18" x2="13" y2="18" />
   </Svg>
 )
+
+export const IconMaximize = (p) => (
+  <Svg {...p}>
+    <path d="M8 3H4a1 1 0 0 0-1 1v4" />
+    <path d="M16 3h4a1 1 0 0 1 1 1v4" />
+    <path d="M21 16v4a1 1 0 0 1-1 1h-4" />
+    <path d="M3 16v4a1 1 0 0 0 1 1h4" />
+  </Svg>
+)

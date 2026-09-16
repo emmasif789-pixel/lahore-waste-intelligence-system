@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react'
 import { scoreHotspot, recommendedAction, severityMeta } from '../lib/priorityEngine'
 import { describeUnderMonitoredAreas } from '../lib/densityInsight'
 import { askIntelQuestion } from '../lib/askIntel'
-import { IconCheckCircle, IconAlertTriangle } from './Icons'
+import { IconAlertTriangle } from './Icons'
 
 // The preset questions below are computed directly from the live hotspot
 // dataset — no AI call, no fabricated narrative. The free-text box at the
@@ -162,6 +162,7 @@ function RecommendedQA({ hotspots, scored, areas }) {
   const [asking, setAsking] = useState(false)
   const [customAnswer, setCustomAnswer] = useState(null)
   const [customErr, setCustomErr] = useState(null)
+  const [showAiNote, setShowAiNote] = useState(false)
 
   const areaRisk = useMemo(() => {
     const byArea = {}
@@ -195,6 +196,7 @@ function RecommendedQA({ hotspots, scored, areas }) {
     setAsking(true)
     setCustomAnswer(null)
     setCustomErr(null)
+    setShowAiNote(false)
     const result = await askIntelQuestion(q, buildDataContext())
     setAsking(false)
     if (result.ok) {
@@ -273,10 +275,20 @@ function RecommendedQA({ hotspots, scored, areas }) {
 
       {customAnswer && (
         <div className="intel-answer-box intel-answer-ai">
-          <div className="photo-verified-tag inline verified" style={{ marginBottom: 6 }}>
-            <IconCheckCircle size={10} /> AI-generated from current site data
+          <div className="intel-answer-ai-head">
+            <span>{customAnswer}</span>
+            <button
+              className="ai-source-dot"
+              onClick={() => setShowAiNote((v) => !v)}
+              aria-label="How this answer was generated"
+              title="How this answer was generated"
+            >
+              i
+            </button>
           </div>
-          <div>{customAnswer}</div>
+          {showAiNote && (
+            <div className="ai-source-note">AI-generated from current site data — not a preset answer.</div>
+          )}
         </div>
       )}
 
