@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import Gauge from './Gauge'
 import { scoreHotspot, recommendedAction, severityMeta, riskBandFromScore } from '../lib/priorityEngine'
 import { loadReportsForHotspot } from '../lib/store'
-import { IconX, IconArrowRight, IconCamera, IconCheckCircle, IconAlertTriangle, IconMapPin, IconFlame, IconMaximize } from './Icons'
+import { IconX, IconArrowRight, IconCamera, IconCheckCircle, IconAlertTriangle, IconMapPin, IconFlame, IconMaximize, IconTrendingDown } from './Icons'
 
 const TYPE_COLOR = {
   Organic: '#4fae64',
@@ -176,23 +176,16 @@ function ImpactVerification({ hotspot, currentScore }) {
 
   return (
     <div style={{ marginTop: 4 }}>
-      <div className="section-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><IconCamera size={12} /> Impact verification</div>
-      <div
-        style={{
-          background: 'var(--sev-low-soft)',
-          border: '1px solid rgba(79,174,100,0.35)',
-          borderRadius: 'var(--radius-md)',
-          padding: 14,
-        }}
-      >
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: 10, alignItems: 'center' }}>
+      <div className="section-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><IconTrendingDown size={12} /> Cleanup impact — before → after</div>
+      <div className="impact-box">
+        <div className="impact-grid">
           <ImpactColumn
             label="BEFORE cleanup"
             recurrence={before.recurrence}
             risk={beforeBand}
             burning={before.burning}
           />
-          <div style={{ color: 'var(--text-muted)' }}><IconArrowRight size={18} /></div>
+          <div className="impact-arrow"><IconArrowRight size={18} /></div>
           <ImpactColumn
             label="AFTER cleanup"
             recurrence={hotspot.recurrence}
@@ -201,8 +194,8 @@ function ImpactVerification({ hotspot, currentScore }) {
             highlight
           />
         </div>
-        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 10, lineHeight: 1.5 }}>
-          Recurrence and hazard status reset when this site was marked resolved on {before.capturedAt?.slice(0, 10)}. Future reports at this location will show whether the improvement holds.
+        <div className="impact-footnote">
+          Recurrence and hazard status reset when this site was marked resolved on {before.capturedAt?.slice(0, 10)}. Future reports at this location will show whether the improvement holds — this is not a one-time claim, it's checked against what gets reported next.
         </div>
       </div>
     </div>
@@ -211,17 +204,13 @@ function ImpactVerification({ hotspot, currentScore }) {
 
 function ImpactColumn({ label, recurrence, risk, burning, highlight }) {
   return (
-    <div style={{ textAlign: 'center' }}>
-      <div style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-        {label}
-      </div>
-      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, color: highlight ? 'var(--sev-low)' : 'var(--text-primary)' }}>
-        {recurrence}%
-      </div>
-      <div style={{ fontSize: 10.5, color: 'var(--text-muted)', marginBottom: 4 }}>recurrence</div>
-      <div style={{ fontSize: 11, fontWeight: 600, color: risk.color }}>{risk.label} risk</div>
+    <div className="impact-col">
+      <div className="impact-col-label">{label}</div>
+      <div className={`impact-col-value ${highlight ? 'highlight' : ''}`}>{recurrence}%</div>
+      <div className="impact-col-caption">recurrence</div>
+      <div className="impact-col-risk" style={{ color: risk.color }}>{risk.label} risk</div>
       {burning && (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3, fontSize: 10, color: 'var(--sev-critical)', marginTop: 2 }}>
+        <div className="impact-col-burning">
           <IconFlame size={10} /> burning
         </div>
       )}

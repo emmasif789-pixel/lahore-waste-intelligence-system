@@ -152,3 +152,10 @@ export const IconMaximize = (p) => (
     <path d="M3 16v4a1 1 0 0 0 1 1h4" />
   </Svg>
 )
+
+export const IconTrendingDown = (p) => (
+  <Svg {...p}>
+    <polyline points="3 7 10 14 14 10 21 17" />
+    <polyline points="21 10 21 17 14 17" />
+  </Svg>
+)
