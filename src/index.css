@@ -310,6 +310,17 @@ button {
 .map-top-stack > * {
   pointer-events: auto;
 }
+/* .stat-strip and .area-panel-wrap don't set align-self: flex-start by
+   accident — without it, align-items:stretch above stretches them to the
+   full width of this stack even though only a few chips/a narrow panel
+   are visually drawn. Since they're direct children here, pointer-events
+   is auto on their whole (invisible, full-width) box — so map markers
+   sitting in that empty space became unclickable despite looking free.
+   Restored to full width again inside the mobile media query, where that
+   stretch is actually the intended look. */
+.area-panel-wrap {
+  align-self: flex-start;
+}
 
 /* Map context bar - persistent orientation, not a dismissable modal */
 .map-context-bar {
@@ -345,6 +356,7 @@ button {
   position: static;
   display: flex;
   align-items: stretch;
+  align-self: flex-start;
   gap: 12px;
   overflow-x: auto;
 }
@@ -1433,6 +1445,7 @@ table.hs-table tr:hover td {
     grid-template-columns: 1fr 1fr;
     gap: 8px;
     overflow: visible;
+    align-self: stretch;
   }
   .stat-chip { min-width: 0; padding: 8px 10px; }
   .stat-chip .stat-value { font-size: 16px; }
@@ -1465,6 +1478,7 @@ table.hs-table tr:hover td {
   }
   .area-panel-wrap {
     display: none;
+    align-self: stretch;
   }
   .area-panel-wrap.open {
     display: block;
